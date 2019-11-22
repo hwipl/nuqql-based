@@ -348,10 +348,10 @@ def handle_account_add(params):
     store_accounts()
 
     # create mew logger
-    account_dir = CONFIG["dir"] + "/logs/account/{0}".format(acc_id)
-    pathlib.Path(account_dir).mkdir(parents=True, exist_ok=True)
+    account_dir = CONFIG["dir"] / "logs" / "account" / f"{acc_id}"
+    account_dir.mkdir(parents=True, exist_ok=True)
     os.chmod(account_dir, stat.S_IRWXU)
-    account_log = account_dir + "/account.log"
+    account_log = account_dir / "account.log"
     # logger name must be string
     new_acc.logger = init_logger(str(acc_id), account_log)
     # TODO: do we still need LOGGERS[acc_id]?
@@ -712,8 +712,8 @@ def run_unix_server(config):
     """
 
     # make sure paths exist
-    pathlib.Path(config["dir"]).mkdir(parents=True, exist_ok=True)
-    sockfile = config["dir"] + "/" + config["sockfile"]
+    config["dir"].mkdir(parents=True, exist_ok=True)
+    sockfile = str(config["dir"] / config["sockfile"])
     try:
         # unlink sockfile of previous execution of the server
         os.unlink(sockfile)
@@ -790,12 +790,12 @@ def init_main_logger():
     """
 
     # make sure logs directory exists
-    logs_dir = CONFIG["dir"] + "/logs"
-    pathlib.Path(logs_dir).mkdir(parents=True, exist_ok=True)
+    logs_dir = CONFIG["dir"] / "logs"
+    logs_dir.mkdir(parents=True, exist_ok=True)
     os.chmod(logs_dir, stat.S_IRWXU)
 
     # main log
-    main_log = logs_dir + "/main.log"
+    main_log = logs_dir / "main.log"
     LOGGERS["main"] = init_logger("main", main_log)
     os.chmod(main_log, stat.S_IRUSR | stat.S_IWUSR)
 
@@ -806,19 +806,19 @@ def init_account_loggers():
     """
 
     # make sure logs directory exists
-    logs_dir = CONFIG["dir"] + "/logs"
-    pathlib.Path(logs_dir).mkdir(parents=True, exist_ok=True)
+    logs_dir = CONFIG["dir"] / "logs"
+    logs_dir.mkdir(parents=True, exist_ok=True)
     os.chmod(logs_dir, stat.S_IRWXU)
 
     # account logs
-    account_dir = logs_dir + "/account"
-    pathlib.Path(account_dir).mkdir(parents=True, exist_ok=True)
+    account_dir = logs_dir / "account"
+    account_dir.mkdir(parents=True, exist_ok=True)
     os.chmod(account_dir, stat.S_IRWXU)
     for acc in ACCOUNTS.keys():
-        acc_dir = account_dir + "/{0}".format(acc)
-        pathlib.Path(acc_dir).mkdir(parents=True, exist_ok=True)
+        acc_dir = account_dir / f"{acc}"
+        acc_dir.mkdir(parents=True, exist_ok=True)
         os.chmod(acc_dir, stat.S_IRWXU)
-        acc_log = acc_dir + "/account.log"
+        acc_log = acc_dir / "account.log"
         # logger name must be string
         ACCOUNTS[acc].logger = init_logger(str(acc), acc_log)
         # TODO: do we still need LOGGERS[acc]?
@@ -840,7 +840,7 @@ def store_accounts():
     """
 
     # set accounts file and init configparser
-    accounts_file = pathlib.Path(CONFIG["dir"] + "/accounts.ini")
+    accounts_file = CONFIG["dir"] / "accounts.ini"
     config = configparser.ConfigParser()
     config.optionxform = lambda option: option
 
@@ -871,9 +871,9 @@ def load_accounts():
     """
 
     # make sure path and file exist
-    pathlib.Path(CONFIG["dir"]).mkdir(parents=True, exist_ok=True)
+    CONFIG["dir"].mkdir(parents=True, exist_ok=True)
     os.chmod(CONFIG["dir"], stat.S_IRWXU)
-    accounts_file = pathlib.Path(CONFIG["dir"] + "/accounts.ini")
+    accounts_file = CONFIG["dir"] / "accounts.ini"
     if not accounts_file.exists():
         return
 
@@ -951,9 +951,9 @@ def read_config_file():
     """
 
     # make sure path and file exist
-    pathlib.Path(CONFIG["dir"]).mkdir(parents=True, exist_ok=True)
+    CONFIG["dir"].mkdir(parents=True, exist_ok=True)
     os.chmod(CONFIG["dir"], stat.S_IRWXU)
-    config_file = pathlib.Path(CONFIG["dir"] + "/config.ini")
+    config_file = CONFIG["dir"] / "config.ini"
     if not config_file.exists():
         return
 
@@ -978,10 +978,10 @@ def read_config_file():
                     "address", fallback=CONFIG["address"])
                 CONFIG["port"] = config[section].getint(
                     "port", fallback=CONFIG["port"])
-                CONFIG["sockfile"] = config[section].get(
-                    "sockfile", fallback=CONFIG["sockfile"])
-                CONFIG["dir"] = config[section].get(
-                    "dir", fallback=CONFIG["dir"])
+                CONFIG["sockfile"] = pathlib.Path(config[section].get(
+                    "sockfile", fallback=CONFIG["sockfile"]))
+                CONFIG["dir"] = pathlib.Path(config[section].get(
+                    "dir", fallback=CONFIG["dir"]))
                 CONFIG["daemonize"] = config[section].getboolean(
                     "daemonize", fallback=CONFIG["daemonize"])
                 CONFIG["loglevel"] = config[section].get(
@@ -1007,8 +1007,8 @@ def init_config(backend_name="based"):
     CONFIG["af"] = "inet"
     CONFIG["address"] = "localhost"
     CONFIG["port"] = 32000
-    CONFIG["sockfile"] = f"{backend_name}.sock"
-    CONFIG["dir"] = pathlib.Path.home() + f"/.config/nuqql-{backend_name}"
+    CONFIG["sockfile"] = pathlib.Path(f"{backend_name}.sock")
+    CONFIG["dir"] = pathlib.Path.home() / f".config/nuqql-{backend_name}"
     CONFIG["daemonize"] = False
     CONFIG["loglevel"] = DEFAULT_LOGLEVEL
 
@@ -1017,12 +1017,15 @@ def init_config(backend_name="based"):
 
     # read config file and load it into config
     if "dir" in args:
-        CONFIG["dir"] = args["dir"]
+        CONFIG["dir"] = pathlib.Path(args["dir"])
     read_config_file()
 
     # overwrite config with command line arguments
     for key, value in args.items():
-        CONFIG[key] = value
+        if key in ("dir", "sockfile"):
+            CONFIG[key] = pathlib.Path(value)
+        else:
+            CONFIG[key] = value
 
     return CONFIG
 
