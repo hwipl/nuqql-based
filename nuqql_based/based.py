@@ -1008,7 +1008,7 @@ def init_config(backend_name="based"):
     CONFIG["address"] = "localhost"
     CONFIG["port"] = 32000
     CONFIG["sockfile"] = f"{backend_name}.sock"
-    CONFIG["dir"] = os.getcwd() + f"/nuqql-{backend_name}"
+    CONFIG["dir"] = pathlib.Path.home() + f"/.config/nuqql-{backend_name}"
     CONFIG["daemonize"] = False
     CONFIG["loglevel"] = DEFAULT_LOGLEVEL
 
