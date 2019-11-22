@@ -997,7 +997,7 @@ def read_config_file():
         print(error_msg)
 
 
-def init_config():
+def init_config(backend_name="based"):
     """
     Initialize backend configuration from config file and
     command line parameters
@@ -1007,8 +1007,8 @@ def init_config():
     CONFIG["af"] = "inet"
     CONFIG["address"] = "localhost"
     CONFIG["port"] = 32000
-    CONFIG["sockfile"] = "based.sock"
-    CONFIG["dir"] = os.getcwd() + "/nuqql-based"
+    CONFIG["sockfile"] = f"{backend_name}.sock"
+    CONFIG["dir"] = os.getcwd() + f"/nuqql-{backend_name}"
     CONFIG["daemonize"] = False
     CONFIG["loglevel"] = DEFAULT_LOGLEVEL
 
