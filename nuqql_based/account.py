@@ -84,7 +84,7 @@ def load_accounts():
     os.chmod(CONFIG["dir"], stat.S_IRWXU)
     accounts_file = CONFIG["dir"] / "accounts.ini"
     if not accounts_file.exists():
-        return
+        return ACCOUNTS
 
     # make sure only user can read/write file before using it
     os.chmod(accounts_file, stat.S_IRUSR | stat.S_IWUSR)
@@ -113,6 +113,8 @@ def load_accounts():
         new_acc = Account(aid=acc_id, atype=acc_type, user=acc_user,
                           password=acc_pass)
         ACCOUNTS[new_acc.aid] = new_acc
+
+    return ACCOUNTS
 
 
 def get_accounts():

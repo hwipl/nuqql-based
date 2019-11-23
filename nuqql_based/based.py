@@ -6,7 +6,7 @@ Basic nuqql backend
 
 import sys
 
-from nuqql_based.account import ACCOUNTS, load_accounts
+from nuqql_based.account import load_accounts
 from nuqql_based.logger import init_main_logger, init_account_loggers
 from nuqql_based.config import init_config
 from nuqql_based.server import run_server
@@ -24,10 +24,10 @@ def main():
     init_main_logger(config)
 
     # load accounts
-    load_accounts()
+    accounts = load_accounts()
 
     # initialize account loggers
-    init_account_loggers(config, ACCOUNTS)
+    init_account_loggers(config, accounts)
 
     # start server
     try:
