@@ -6,20 +6,20 @@ Basic nuqql backend
 
 import socketserver
 import configparser
-import logging
 import select
 import stat
 import html
 import sys
 import os
 
-from nuqql_based.config import LOGLEVELS, CONFIG, init_config
+from nuqql_based.logger import LOGGERS, init_logger, init_main_logger, \
+        init_account_loggers
+from nuqql_based.config import CONFIG, init_config
 from nuqql_based.callback import Callback, callback
 from nuqql_based.message import Format
 
 
 ACCOUNTS = {}
-LOGGERS = {}
 
 
 class Buddy:
@@ -228,7 +228,7 @@ def handle_account_add(params):
     os.chmod(account_dir, stat.S_IRWXU)
     account_log = account_dir / "account.log"
     # logger name must be string
-    new_acc.logger = init_logger(str(acc_id), account_log)
+    new_acc.logger = init_logger(CONFIG, str(acc_id), account_log)
     # TODO: do we still need LOGGERS[acc_id]?
     LOGGERS[acc_id] = new_acc.logger
     os.chmod(account_log, stat.S_IRUSR | stat.S_IWUSR)
@@ -628,87 +628,6 @@ def run_server(config):
             run_unix_server(config)
 
 
-def init_logger(name, file_name):
-    """
-    Create a logger with <name>, that logs to <file_name>
-    """
-
-    # determine logging level from config
-    loglevel = LOGLEVELS[CONFIG["loglevel"]]
-
-    # create logger
-    logger = logging.getLogger(name)
-    logger.setLevel(loglevel)
-
-    # create handler
-    fileh = logging.FileHandler(file_name)
-    fileh.setLevel(loglevel)
-
-    # create formatter
-    formatter = logging.Formatter(
-        fmt="%(asctime)s %(levelname)-5.5s [%(name)s] %(message)s",
-        datefmt="%s")
-
-    # add formatter to handler
-    fileh.setFormatter(formatter)
-
-    # add handler to logger
-    logger.addHandler(fileh)
-
-    # return logger to caller
-    return logger
-
-
-def init_main_logger():
-    """
-    Initialize logger for main log
-    """
-
-    # make sure logs directory exists
-    logs_dir = CONFIG["dir"] / "logs"
-    logs_dir.mkdir(parents=True, exist_ok=True)
-    os.chmod(logs_dir, stat.S_IRWXU)
-
-    # main log
-    main_log = logs_dir / "main.log"
-    LOGGERS["main"] = init_logger("main", main_log)
-    os.chmod(main_log, stat.S_IRUSR | stat.S_IWUSR)
-
-
-def init_account_loggers():
-    """
-    Initialize loggers for account specific logs
-    """
-
-    # make sure logs directory exists
-    logs_dir = CONFIG["dir"] / "logs"
-    logs_dir.mkdir(parents=True, exist_ok=True)
-    os.chmod(logs_dir, stat.S_IRWXU)
-
-    # account logs
-    account_dir = logs_dir / "account"
-    account_dir.mkdir(parents=True, exist_ok=True)
-    os.chmod(account_dir, stat.S_IRWXU)
-    for acc in ACCOUNTS.keys():
-        acc_dir = account_dir / f"{acc}"
-        acc_dir.mkdir(parents=True, exist_ok=True)
-        os.chmod(acc_dir, stat.S_IRWXU)
-        acc_log = acc_dir / "account.log"
-        # logger name must be string
-        ACCOUNTS[acc].logger = init_logger(str(acc), acc_log)
-        # TODO: do we still need LOGGERS[acc]?
-        LOGGERS[acc] = ACCOUNTS[acc].logger
-        os.chmod(acc_log, stat.S_IRUSR | stat.S_IWUSR)
-
-
-def get_logger(name):
-    """
-    Helper for getting the logger with the name <name>
-    """
-
-    return LOGGERS[name]
-
-
 def store_accounts():
     """
     Store accounts in a file.
@@ -798,13 +717,13 @@ def main():
     config = init_config()
 
     # initialize main logger
-    init_main_logger()
+    init_main_logger(config)
 
     # load accounts
     load_accounts()
 
     # initialize account loggers
-    init_account_loggers()
+    init_account_loggers(config, ACCOUNTS)
 
     # start server
     try:
