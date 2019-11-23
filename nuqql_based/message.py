@@ -2,6 +2,8 @@
 Nuqql message formats
 """
 
+import html
+
 from enum import Enum
 
 
@@ -67,3 +69,25 @@ help
 
     def __str__(self):
         return str(self.value)
+
+
+def format_message(account, tstamp, sender, destination, msg):
+    """
+    Helper for formatting "message" messages
+    """
+
+    msg_body = html.escape(msg)
+    msg_body = "<br/>".join(msg_body.split("\n"))
+    return Format.MESSAGE.format(account.aid, destination, tstamp, sender,
+                                 msg_body)
+
+
+def format_chat_msg(account, tstamp, sender, destination, msg):
+    """
+    Helper for formatting "chat msg" messages
+    """
+
+    msg_body = html.escape(msg)
+    msg_body = "<br/>".join(msg_body.split("\n"))
+    return Format.CHAT_MSG.format(account.aid, destination, tstamp, sender,
+                                  msg_body)
