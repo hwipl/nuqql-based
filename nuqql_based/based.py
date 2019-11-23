@@ -18,17 +18,7 @@ from nuqql_based.logger import LOGGERS, init_logger, init_main_logger, \
 from nuqql_based.config import CONFIG, init_config
 from nuqql_based.callback import Callback, callback
 from nuqql_based.message import Format
-
-
-class Buddy:
-    """
-    Storage for buddy specific information
-    """
-
-    def __init__(self, name="none", alias="none", status="Available"):
-        self.name = name
-        self.alias = alias
-        self.status = status
+from nuqql_based.buddy import Buddy
 
 
 class NuqqlBaseHandler(socketserver.BaseRequestHandler):
