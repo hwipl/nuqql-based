@@ -12,6 +12,12 @@ class Callback(Enum):
     CALLBACKS constants
     """
 
+    # based events
+    BASED_CONFIG = auto()
+    BASED_INTERRUPT = auto()
+    BASED_QUIT = auto()
+
+    # nuqql commands
     QUIT = auto()
     DISCONNECT = auto()
     SEND_MESSAGE = auto()
