@@ -7,7 +7,7 @@ import stat
 import os
 
 from nuqql_based.callback import Callback, callback
-from nuqql_based.logger import LOGGERS
+from nuqql_based import logger
 from nuqql_based import config
 
 
@@ -40,7 +40,8 @@ class Account:
 
         # log message
         log_msg = "message: to {0}: {1}".format(user, msg)
-        LOGGERS[self.aid].info(log_msg)
+        log = logger.get_logger(self.aid)
+        log.info(log_msg)
 
 
 def store_accounts():
@@ -72,7 +73,8 @@ def store_accounts():
             accconf.write(acc_file)
     except (OSError, configparser.Error) as error:
         error_msg = "Error storing accounts file: {}".format(error)
-        LOGGERS["main"].error(error_msg)
+        log = logger.get_logger("main")
+        log.error(error_msg)
 
 
 def load_accounts():
@@ -97,7 +99,8 @@ def load_accounts():
         accconf.read(accounts_file)
     except configparser.Error as error:
         error_msg = "Error loading accounts file: {}".format(error)
-        LOGGERS["main"].error(error_msg)
+        log = logger.get_logger("main")
+        log.error(error_msg)
 
     for section in accconf.sections():
         # try to read account from account file
@@ -108,7 +111,8 @@ def load_accounts():
             acc_pass = accconf[section]["password"]
         except KeyError as error:
             error_msg = "Error loading account: {}".format(error)
-            LOGGERS["main"].error(error_msg)
+            log = logger.get_logger("main")
+            log.error(error_msg)
             continue
 
         # add account
