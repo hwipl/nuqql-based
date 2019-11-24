@@ -9,7 +9,7 @@ import sys
 import os
 
 from nuqql_based import account
-from nuqql_based.callback import Callback, callback
+from nuqql_based import callback
 from nuqql_based.logger import LOGGERS
 from nuqql_based.message import Format
 from nuqql_based.buddy import Buddy
@@ -33,7 +33,8 @@ class NuqqlBaseHandler(socketserver.BaseRequestHandler):
         # get messages from callback for each account
         accounts = account.get_accounts()
         for acc in accounts.values():
-            messages = callback(acc.aid, Callback.GET_MESSAGES, ())
+            messages = callback.callback(acc.aid,
+                                         callback.Callback.GET_MESSAGES, ())
             if messages:
                 messages = messages.encode()
                 self.request.sendall(messages)
@@ -184,7 +185,7 @@ def handle_account_buddies(acc_id, params):
     # update buddy list
     # if "update_buddies" in ACCOUNTS[acc_id].callbacks:
     #     ACCOUNTS[acc_id].callbacks["update_buddies"](ACCOUNTS[acc_id])
-    callback(acc_id, Callback.UPDATE_BUDDIES, ())
+    callback.callback(acc_id, callback.Callback.UPDATE_BUDDIES, ())
 
     # filter online buddies?
     online = False
@@ -232,7 +233,7 @@ def handle_account_collect(acc_id, params):
     LOGGERS[acc_id].info(log_msg)
 
     # collect messages
-    return callback(acc_id, Callback.COLLECT_MESSAGES, ())
+    return callback.callback(acc_id, callback.Callback.COLLECT_MESSAGES, ())
 
 
 def handle_account_send(acc_id, params):
@@ -292,7 +293,7 @@ def handle_account_status(acc_id, params):
 
     # get current status
     if params[0] == "get":
-        status = callback(acc_id, Callback.GET_STATUS, ())
+        status = callback.callback(acc_id, callback.Callback.GET_STATUS, ())
         if status:
             return Format.STATUS.format(acc_id, status)
 
@@ -302,7 +303,8 @@ def handle_account_status(acc_id, params):
             return ""
 
         status = params[1]
-        return callback(acc_id, Callback.SET_STATUS, (status, ))
+        return callback.callback(acc_id, callback.Callback.SET_STATUS,
+                                 (status, ))
     return ""
 
 
@@ -324,7 +326,7 @@ def handle_account_chat(acc_id, params):
 
     # list active chats
     if params[0] == "list":
-        return callback(acc_id, Callback.CHAT_LIST, ())
+        return callback.callback(acc_id, callback.Callback.CHAT_LIST, ())
 
     if len(params) < 2:
         return ""
@@ -332,15 +334,16 @@ def handle_account_chat(acc_id, params):
     chat = params[1]
     # join a chat
     if params[0] == "join":
-        return callback(acc_id, Callback.CHAT_JOIN, (chat, ))
+        return callback.callback(acc_id, callback.Callback.CHAT_JOIN, (chat, ))
 
     # leave a chat
     if params[0] == "part":
-        return callback(acc_id, Callback.CHAT_PART, (chat, ))
+        return callback.callback(acc_id, callback.Callback.CHAT_PART, (chat, ))
 
     # get users in chat
     if params[0] == "users":
-        return callback(acc_id, Callback.CHAT_USERS, (chat, ))
+        return callback.callback(acc_id, callback.Callback.CHAT_USERS,
+                                 (chat, ))
 
     if len(params) < 3:
         return ""
@@ -348,12 +351,14 @@ def handle_account_chat(acc_id, params):
     # invite a user to a chat
     if params[0] == "invite":
         user = params[2]
-        return callback(acc_id, Callback.CHAT_INVITE, (chat, user))
+        return callback.callback(acc_id, callback.Callback.CHAT_INVITE,
+                                 (chat, user))
 
     # send a message to a chat
     if params[0] == "send":
         msg = " ".join(params[2:])
-        return callback(acc_id, Callback.CHAT_SEND, (chat, msg))
+        return callback.callback(acc_id, callback.Callback.CHAT_SEND,
+                                 (chat, msg))
 
     return ""
 
@@ -432,9 +437,9 @@ def handle_msg(msg):
         # call disconnect or quit callback in every account
         for acc in account.get_accounts().values():
             if parts[0] == "bye":
-                callback(acc.aid, Callback.DISCONNECT, ())
+                callback.callback(acc.aid, callback.Callback.DISCONNECT, ())
             if parts[0] == "quit":
-                callback(acc.aid, Callback.QUIT, ())
+                callback.callback(acc.aid, callback.Callback.QUIT, ())
         return (parts[0], "Goodbye.")
 
     # handle "help" command
