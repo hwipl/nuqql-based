@@ -6,7 +6,7 @@ import configparser
 import stat
 import os
 
-from nuqql_based.callback import Callback, callback
+from nuqql_based import callback
 from nuqql_based import logger
 from nuqql_based import config
 
@@ -36,7 +36,8 @@ class Account:
         """
 
         # try to send message
-        callback(self.aid, Callback.SEND_MESSAGE, (user, msg))
+        callback.callback(self.aid, callback.Callback.SEND_MESSAGE,
+                          (user, msg))
 
         # log message
         log_msg = "message: to {0}: {1}".format(user, msg)
