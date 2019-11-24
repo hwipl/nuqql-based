@@ -10,7 +10,7 @@ import os
 
 from nuqql_based import account
 from nuqql_based import callback
-from nuqql_based.logger import LOGGERS
+from nuqql_based import logger
 from nuqql_based.message import Format
 from nuqql_based.buddy import Buddy
 
@@ -121,7 +121,8 @@ def handle_account_list():
 
     # log event
     log_msg = "account list: {0}".format(replies)
-    LOGGERS["main"].info(log_msg)
+    log = logger.get_logger("main")
+    log.info(log_msg)
 
     # return a single string
     return "".join(replies)
@@ -207,7 +208,8 @@ def handle_account_buddies(acc_id, params):
 
     # log event
     log_msg = "account {0} buddies: {1}".format(acc_id, replies)
-    LOGGERS[acc_id].info(log_msg)
+    log = logger.get_logger(acc_id)
+    log.info(log_msg)
 
     # return replies as single string
     return "".join(replies)
@@ -230,7 +232,8 @@ def handle_account_collect(acc_id, params):
 
     # log event
     log_msg = "account {0} collect {1}".format(acc_id, time)
-    LOGGERS[acc_id].info(log_msg)
+    log = logger.get_logger(acc_id)
+    log.info(log_msg)
 
     # collect messages
     return callback.callback(acc_id, callback.Callback.COLLECT_MESSAGES, ())
@@ -269,7 +272,8 @@ def handle_account_send(acc_id, params):
 
     # log event
     log_msg = "account {0}: new buddy: {1}".format(acc_id, user)
-    LOGGERS[acc_id].info(log_msg)
+    log = logger.get_logger(acc_id)
+    log.info(log_msg)
 
     return ""
 
