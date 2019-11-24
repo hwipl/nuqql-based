@@ -8,7 +8,7 @@ import os
 
 from nuqql_based.callback import Callback, callback
 from nuqql_based.logger import LOGGERS
-from nuqql_based.config import CONFIG
+from nuqql_based import config
 
 
 ACCOUNTS = {}
@@ -49,18 +49,19 @@ def store_accounts():
     """
 
     # set accounts file and init configparser
-    accounts_file = CONFIG["dir"] / "accounts.ini"
-    config = configparser.ConfigParser()
-    config.optionxform = lambda option: option
+    conf = config.get_config()
+    accounts_file = conf["dir"] / "accounts.ini"
+    accconf = configparser.ConfigParser()
+    accconf.optionxform = lambda option: option
 
     # construct accounts config that will be written to the accounts file
     for acc in ACCOUNTS.values():
         section = "account {}".format(acc.aid)
-        config[section] = {}
-        config[section]["id"] = str(acc.aid)
-        config[section]["type"] = acc.type
-        config[section]["user"] = acc.user
-        config[section]["password"] = acc.password
+        accconf[section] = {}
+        accconf[section]["id"] = str(acc.aid)
+        accconf[section]["type"] = acc.type
+        accconf[section]["user"] = acc.user
+        accconf[section]["password"] = acc.password
 
     try:
         with open(accounts_file, "w") as acc_file:
@@ -68,7 +69,7 @@ def store_accounts():
             os.chmod(accounts_file, stat.S_IRUSR | stat.S_IWUSR)
 
             # write accounts to file
-            config.write(acc_file)
+            accconf.write(acc_file)
     except (OSError, configparser.Error) as error:
         error_msg = "Error storing accounts file: {}".format(error)
         LOGGERS["main"].error(error_msg)
@@ -80,9 +81,10 @@ def load_accounts():
     """
 
     # make sure path and file exist
-    CONFIG["dir"].mkdir(parents=True, exist_ok=True)
-    os.chmod(CONFIG["dir"], stat.S_IRWXU)
-    accounts_file = CONFIG["dir"] / "accounts.ini"
+    conf = config.get_config()
+    conf["dir"].mkdir(parents=True, exist_ok=True)
+    os.chmod(conf["dir"], stat.S_IRWXU)
+    accounts_file = conf["dir"] / "accounts.ini"
     if not accounts_file.exists():
         return ACCOUNTS
 
@@ -91,19 +93,19 @@ def load_accounts():
 
     # read config file
     try:
-        config = configparser.ConfigParser()
-        config.read(accounts_file)
+        accconf = configparser.ConfigParser()
+        accconf.read(accounts_file)
     except configparser.Error as error:
         error_msg = "Error loading accounts file: {}".format(error)
         LOGGERS["main"].error(error_msg)
 
-    for section in config.sections():
+    for section in accconf.sections():
         # try to read account from account file
         try:
-            acc_id = int(config[section]["id"])
-            acc_type = config[section]["type"]
-            acc_user = config[section]["user"]
-            acc_pass = config[section]["password"]
+            acc_id = int(accconf[section]["id"])
+            acc_type = accconf[section]["type"]
+            acc_user = accconf[section]["user"]
+            acc_pass = accconf[section]["password"]
         except KeyError as error:
             error_msg = "Error loading account: {}".format(error)
             LOGGERS["main"].error(error_msg)
