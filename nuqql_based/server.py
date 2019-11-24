@@ -8,11 +8,10 @@ import stat
 import sys
 import os
 
-from nuqql_based.account import ACCOUNTS, Account, store_accounts, get_accounts
+from nuqql_based import account
 from nuqql_based.callback import Callback, callback
-from nuqql_based.logger import LOGGERS, init_logger
+from nuqql_based.logger import LOGGERS
 from nuqql_based.message import Format
-from nuqql_based.config import CONFIG
 from nuqql_based.buddy import Buddy
 
 
@@ -32,8 +31,9 @@ class NuqqlBaseHandler(socketserver.BaseRequestHandler):
         """
 
         # get messages from callback for each account
-        for account in ACCOUNTS.values():
-            messages = callback(account.aid, Callback.GET_MESSAGES, ())
+        accounts = account.get_accounts()
+        for acc in accounts.values():
+            messages = callback(acc.aid, Callback.GET_MESSAGES, ())
             if messages:
                 messages = messages.encode()
                 self.request.sendall(messages)
@@ -112,9 +112,10 @@ def handle_account_list():
     """
 
     replies = []
-    for account in ACCOUNTS.values():
-        reply = Format.ACCOUNT.format(account.aid, account.name, account.type,
-                                      account.user, account.status)
+    accounts = account.get_accounts()
+    for acc in accounts.values():
+        reply = Format.ACCOUNT.format(acc.aid, acc.name, acc.type, acc.user,
+                                      acc.status)
         replies.append(reply)
 
     # log event
@@ -123,24 +124,6 @@ def handle_account_list():
 
     # return a single string
     return "".join(replies)
-
-
-def _get_account_id():
-    """
-    Get next free account id
-    """
-
-    if not ACCOUNTS:
-        return 0
-
-    last_acc_id = -1
-    for acc_id in sorted(ACCOUNTS.keys()):
-        if acc_id - last_acc_id >= 2:
-            return last_acc_id + 1
-        if acc_id - last_acc_id == 1:
-            last_acc_id = acc_id
-
-    return last_acc_id + 1
 
 
 def handle_account_add(params):
@@ -158,46 +141,15 @@ def handle_account_add(params):
         return ""
 
     # get account information
-    acc_id = _get_account_id()
     acc_type = params[0]
     acc_user = params[1]
     acc_pass = params[2]
-    new_acc = Account(aid=acc_id, atype=acc_type, user=acc_user,
-                      password=acc_pass)
 
-    # make sure the account does not exist
-    for acc in ACCOUNTS.values():
-        if acc.type == new_acc.type and acc.user == new_acc.user:
-            return Format.INFO.format("account already exists.")
+    # add account
+    result = account.add_account(acc_type, acc_user, acc_pass)
 
-    # new account; add it
-    ACCOUNTS[new_acc.aid] = new_acc
-
-    # store updated accounts in file
-    store_accounts()
-
-    # create mew logger
-    account_dir = CONFIG["dir"] / "logs" / "account" / f"{acc_id}"
-    account_dir.mkdir(parents=True, exist_ok=True)
-    os.chmod(account_dir, stat.S_IRWXU)
-    account_log = account_dir / "account.log"
-    # logger name must be string
-    new_acc.logger = init_logger(CONFIG, str(acc_id), account_log)
-    # TODO: do we still need LOGGERS[acc_id]?
-    LOGGERS[acc_id] = new_acc.logger
-    os.chmod(account_log, stat.S_IRUSR | stat.S_IWUSR)
-
-    # log event
-    log_msg = "account new: id {0} type {1} user {2}".format(new_acc.aid,
-                                                             new_acc.type,
-                                                             new_acc.user)
-    LOGGERS["main"].info(log_msg)
-
-    # notify callback (if present) about new account
-    callback(new_acc.aid, Callback.ADD_ACCOUNT, (new_acc, ))
-
-    # inform caller about success
-    return Format.INFO.format("new account added.")
+    # inform caller about result
+    return Format.INFO.format(result)
 
 
 def handle_account_delete(acc_id):
@@ -208,19 +160,11 @@ def handle_account_delete(acc_id):
         account <ID> delete
     """
 
-    # remove account and update accounts file
-    del ACCOUNTS[acc_id]
-    store_accounts()
+    # delete account
+    result = account.del_account(acc_id)
 
-    # log event
-    log_msg = "account deleted: id {0}".format(acc_id)
-    LOGGERS["main"].info(log_msg)
-
-    # notify callback (if present) about deleted account
-    callback(acc_id, Callback.DEL_ACCOUNT, ())
-
-    # inform caller about success
-    return Format.INFO.format("account {} deleted.".format(acc_id))
+    # inform caller about result
+    return Format.INFO.format(result)
 
 
 def handle_account_buddies(acc_id, params):
@@ -249,7 +193,8 @@ def handle_account_buddies(acc_id, params):
 
     # get buddies for account
     replies = []
-    for buddy in ACCOUNTS[acc_id].buddies:
+    accounts = account.get_accounts()
+    for buddy in accounts[acc_id].buddies:
         # filter online buddies if wanted by client
         if online and buddy.status != "Available":
             continue
@@ -303,20 +248,23 @@ def handle_account_send(acc_id, params):
     user = params[0]
     msg = " ".join(params[1:])      # TODO: do this better?
 
+    accounts = account.get_accounts()
+
     # send message to user
-    ACCOUNTS[acc_id].send_msg(user, msg)
+    accounts[acc_id].send_msg(user, msg)
 
     # check if it is an existing buddy
-    for buddy in ACCOUNTS[acc_id].buddies:
+    for buddy in accounts[acc_id].buddies:
         if buddy.name == user:
             return ""
 
+    # TODO: check buddy adding and store_accounts. Still needed?
     # new buddy; add it to account
     new_buddy = Buddy(name=user, alias="")
-    ACCOUNTS[acc_id].buddies.append(new_buddy)
+    accounts[acc_id].buddies.append(new_buddy)
 
     # store updated accounts in file
-    store_accounts()
+    account.store_accounts()
 
     # log event
     log_msg = "account {0}: new buddy: {1}".format(acc_id, user)
@@ -432,7 +380,7 @@ def handle_account(parts):
         command = parts[2]
         params = parts[3:]
         # valid account?
-        if acc_id not in ACCOUNTS.keys():
+        if acc_id not in account.get_accounts().keys():
             return Format.ERROR.format("invalid account")
     else:
         # invalid command, ignore
@@ -482,7 +430,7 @@ def handle_msg(msg):
     # handle "bye" and "quit" commands
     if parts[0] in ("bye", "quit"):
         # call disconnect or quit callback in every account
-        for acc in get_accounts().values():
+        for acc in account.get_accounts().values():
             if parts[0] == "bye":
                 callback(acc.aid, Callback.DISCONNECT, ())
             if parts[0] == "quit":

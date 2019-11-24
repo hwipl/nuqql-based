@@ -130,3 +130,78 @@ def get_accounts():
     """
 
     return ACCOUNTS
+
+
+def _get_free_account_id():
+    """
+    Get next free account id
+    """
+
+    if not ACCOUNTS:
+        return 0
+
+    last_acc_id = -1
+    for acc_id in sorted(ACCOUNTS.keys()):
+        if acc_id - last_acc_id >= 2:
+            return last_acc_id + 1
+        if acc_id - last_acc_id == 1:
+            last_acc_id = acc_id
+
+    return last_acc_id + 1
+
+
+def add_account(acc_type, acc_user, acc_pass):
+    """
+    Add a new account
+    """
+
+    acc_id = _get_free_account_id()
+    new_acc = Account(aid=acc_id, atype=acc_type, user=acc_user,
+                      password=acc_pass)
+
+    # make sure the account does not exist
+    for acc in ACCOUNTS.values():
+        if acc.type == new_acc.type and acc.user == new_acc.user:
+            return "account already exists."
+
+    # new account; add it
+    ACCOUNTS[new_acc.aid] = new_acc
+
+    # store updated accounts in file
+    store_accounts()
+
+    # create new logger
+    conf = config.get_config()
+    new_acc.logger = logger.add_account_logger(conf, acc_id)
+
+    # log event
+    log_msg = "account new: id {0} type {1} user {2}".format(new_acc.aid,
+                                                             new_acc.type,
+                                                             new_acc.user)
+    log = logger.get_logger("main")
+    log.info(log_msg)
+
+    # notify callback (if present) about new account
+    callback.callback(new_acc.aid, callback.Callback.ADD_ACCOUNT, (new_acc, ))
+
+    return "new account added."
+
+
+def del_account(acc_id):
+    """
+    Delete an account
+    """
+
+    # remove account and update accounts file
+    del ACCOUNTS[acc_id]
+    store_accounts()
+
+    # log event
+    log_msg = "account deleted: id {0}".format(acc_id)
+    log = logger.get_logger("main")
+    log.info(log_msg)
+
+    # notify callback (if present) about deleted account
+    callback.callback(acc_id, callback.Callback.DEL_ACCOUNT, ())
+
+    return "account {} deleted.".format(acc_id)
