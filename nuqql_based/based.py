@@ -36,7 +36,7 @@ def start(name, callbacks):
     logger.init_account_loggers(conf, accounts)
 
     # call add account callback for each account
-    for acc in accounts:
+    for acc in accounts.values():
         callback.callback(acc.aid, callback.Callback.ADD_ACCOUNT, (acc, ))
 
     # start server
