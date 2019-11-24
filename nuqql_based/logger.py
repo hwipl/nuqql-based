@@ -60,6 +60,26 @@ def init_main_logger(config):
     os.chmod(main_log, stat.S_IRUSR | stat.S_IWUSR)
 
 
+def add_account_logger(conf, acc_id):
+    """
+    Add an account specific logger
+    """
+
+    # TODO: merge with init account loggers? remove init account loggers?
+    # create new logger
+    account_dir = conf["dir"] / "logs" / "account" / f"{acc_id}"
+    account_dir.mkdir(parents=True, exist_ok=True)
+    os.chmod(account_dir, stat.S_IRWXU)
+    account_log = account_dir / "account.log"
+    # logger name must be string
+    logger = init_logger(conf, str(acc_id), account_log)
+    # TODO: do we still need LOGGERS[acc_id]?
+    LOGGERS[acc_id] = logger
+    os.chmod(account_log, stat.S_IRUSR | stat.S_IWUSR)
+
+    return logger
+
+
 def init_account_loggers(config, accounts):
     """
     Initialize loggers for account specific logs
