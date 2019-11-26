@@ -35,37 +35,39 @@ class Callback(Enum):
     CHAT_SEND = auto()
     CHAT_INVITE = auto()
 
-    _cb_map = {
-        # based events
-        "BASED_CONFIG":     BASED_CONFIG,
-        "BASED_INTERRUPT":  BASED_INTERRUPT,
-        "BASED_QUIT":       BASED_QUIT,
-
-        # nuqql commands
-        "QUIT":             QUIT,
-        "DISCONNECT":       DISCONNECT,
-        "SEND_MESSAGE":     SEND_MESSAGE,
-        "GET_MESSAGES":     GET_MESSAGES,
-        "COLLECT_MESSAGES": COLLECT_MESSAGES,
-        "ADD_ACCOUNT":      ADD_ACCOUNT,
-        "DEL_ACCOUNT":      DEL_ACCOUNT,
-        "UPDATE_BUDDIES":   UPDATE_BUDDIES,
-        "GET_STATUS":       SET_STATUS,
-        "CHAT_LIST":        CHAT_LIST,
-        "CHAT_JOIN":        CHAT_JOIN,
-        "CHAT_PART":        CHAT_PART,
-        "CHAT_USERS":       CHAT_USERS,
-        "CHAT_SEND":        CHAT_SEND,
-        "CHAT_INVITE":      CHAT_INVITE,
-    }
-
     @staticmethod
     def parse(name):
         """
         Map callback name to callback
         """
 
-        return Callback._cb_map[name]
+        return _CALLBACK_MAP[name]
+
+
+# map callback names to their enum
+_CALLBACK_MAP = {
+    # based events
+    "BASED_CONFIG":     Callback.BASED_CONFIG,
+    "BASED_INTERRUPT":  Callback.BASED_INTERRUPT,
+    "BASED_QUIT":       Callback.BASED_QUIT,
+
+    # nuqql commands
+    "QUIT":             Callback.QUIT,
+    "DISCONNECT":       Callback.DISCONNECT,
+    "SEND_MESSAGE":     Callback.SEND_MESSAGE,
+    "GET_MESSAGES":     Callback.GET_MESSAGES,
+    "COLLECT_MESSAGES": Callback.COLLECT_MESSAGES,
+    "ADD_ACCOUNT":      Callback.ADD_ACCOUNT,
+    "DEL_ACCOUNT":      Callback.DEL_ACCOUNT,
+    "UPDATE_BUDDIES":   Callback.UPDATE_BUDDIES,
+    "GET_STATUS":       Callback.SET_STATUS,
+    "CHAT_LIST":        Callback.CHAT_LIST,
+    "CHAT_JOIN":        Callback.CHAT_JOIN,
+    "CHAT_PART":        Callback.CHAT_PART,
+    "CHAT_USERS":       Callback.CHAT_USERS,
+    "CHAT_SEND":        Callback.CHAT_SEND,
+    "CHAT_INVITE":      Callback.CHAT_INVITE,
+}
 
 
 def callback(account_id, cb_name, params):
