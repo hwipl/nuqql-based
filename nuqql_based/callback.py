@@ -4,8 +4,6 @@ Nuqql-based callbacks
 
 from enum import Enum, auto
 
-CALLBACKS = {}
-
 
 class Callback(Enum):
     """
@@ -43,6 +41,34 @@ class Callback(Enum):
 
         return _CALLBACK_MAP[name]
 
+    def register(self, cb_func):
+        """
+        Register a callback
+        """
+
+        _CALLBACKS[self] = cb_func
+
+    def unregister_callback(self):
+        """
+        Unregister a callback
+        """
+
+        if self in _CALLBACKS:
+            del _CALLBACKS[self]
+
+    def call(self, account_id, params):
+        """
+        Call callback if it is registered
+        """
+
+        if self in _CALLBACKS:
+            return _CALLBACKS[self](account_id, self, params)
+
+        return ""
+
+
+# dictionary containing configured callbacks
+_CALLBACKS = {}
 
 # map callback names to their enum
 _CALLBACK_MAP = {
@@ -68,31 +94,3 @@ _CALLBACK_MAP = {
     "CHAT_SEND":        Callback.CHAT_SEND,
     "CHAT_INVITE":      Callback.CHAT_INVITE,
 }
-
-
-def callback(account_id, cb_name, params):
-    """
-    Call callback if it is registered
-    """
-
-    if cb_name in CALLBACKS:
-        return CALLBACKS[cb_name](account_id, cb_name, params)
-
-    return ""
-
-
-def register_callback(cb_name, cb_func):
-    """
-    Register a callback
-    """
-
-    CALLBACKS[cb_name] = cb_func
-
-
-def unregister_callback(cb_name):
-    """
-    Unregister a callback
-    """
-
-    if cb_name in CALLBACKS:
-        del CALLBACKS[cb_name]

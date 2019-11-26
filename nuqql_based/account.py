@@ -6,7 +6,7 @@ import configparser
 import stat
 import os
 
-from nuqql_based import callback
+from nuqql_based.callback import Callback
 from nuqql_based import logger
 from nuqql_based import config
 
@@ -36,8 +36,7 @@ class Account:
         """
 
         # try to send message
-        callback.callback(self.aid, callback.Callback.SEND_MESSAGE,
-                          (user, msg))
+        Callback.SEND_MESSAGE.call(self.aid, (user, msg))
 
         # log message
         log_msg = "message: to {0}: {1}".format(user, msg)
@@ -182,7 +181,7 @@ def add_account(acc_type, acc_user, acc_pass):
     log.info(log_msg)
 
     # notify callback (if present) about new account
-    callback.callback(new_acc.aid, callback.Callback.ADD_ACCOUNT, (new_acc, ))
+    Callback.ADD_ACCOUNT.call(new_acc.aid, (new_acc, ))
 
     return "new account added."
 
@@ -202,6 +201,6 @@ def del_account(acc_id):
     log.info(log_msg)
 
     # notify callback (if present) about deleted account
-    callback.callback(acc_id, callback.Callback.DEL_ACCOUNT, ())
+    Callback.DEL_ACCOUNT.call(acc_id, ())
 
     return "account {} deleted.".format(acc_id)

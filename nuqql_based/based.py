@@ -6,7 +6,7 @@ Basic nuqql backend
 
 import sys
 
-from nuqql_based import callback
+from nuqql_based.callback import Callback
 from nuqql_based import account
 from nuqql_based import config
 from nuqql_based import logger
@@ -20,11 +20,11 @@ def start(name, callbacks):
 
     # register all callbacks
     for cback, func in callbacks:
-        callback.register_callback(cback, func)
+        cback.register(func)
 
     # initialize configuration from command line and config file
     conf = config.init_config(name)
-    callback.callback(-1, callback.Callback.BASED_CONFIG, (conf, ))
+    Callback.BASED_CONFIG.call(-1, (conf, ))
 
     # initialize main logger
     logger.init_main_logger(conf)
@@ -37,15 +37,15 @@ def start(name, callbacks):
 
     # call add account callback for each account
     for acc in accounts.values():
-        callback.callback(acc.aid, callback.Callback.ADD_ACCOUNT, (acc, ))
+        Callback.ADD_ACCOUNT.call(acc.aid, (acc, ))
 
     # start server
     try:
         server.run_server(conf)
     except KeyboardInterrupt:
-        callback.callback(-1, callback.Callback.BASED_INTERRUPT, ())
+        Callback.BASED_INTERRUPT.call(-1, ())
     finally:
-        callback.callback(-1, callback.Callback.BASED_QUIT, ())
+        Callback.BASED_QUIT.call(-1, ())
         sys.exit()
 
 
