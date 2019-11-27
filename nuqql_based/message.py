@@ -70,24 +70,24 @@ help
     def __str__(self):
         return str(self.value)
 
+    @staticmethod
+    def message(account, tstamp, sender, destination, msg):
+        """
+        Helper for formatting "message" messages
+        """
 
-def format_message(account, tstamp, sender, destination, msg):
-    """
-    Helper for formatting "message" messages
-    """
+        msg_body = html.escape(msg)
+        msg_body = "<br/>".join(msg_body.split("\n"))
+        return Format.MESSAGE.format(account.aid, destination, tstamp, sender,
+                                     msg_body)
 
-    msg_body = html.escape(msg)
-    msg_body = "<br/>".join(msg_body.split("\n"))
-    return Format.MESSAGE.format(account.aid, destination, tstamp, sender,
-                                 msg_body)
+    @staticmethod
+    def chat_msg(account, tstamp, sender, destination, msg):
+        """
+        Helper for formatting "chat msg" messages
+        """
 
-
-def format_chat_msg(account, tstamp, sender, destination, msg):
-    """
-    Helper for formatting "chat msg" messages
-    """
-
-    msg_body = html.escape(msg)
-    msg_body = "<br/>".join(msg_body.split("\n"))
-    return Format.CHAT_MSG.format(account.aid, destination, tstamp, sender,
-                                  msg_body)
+        msg_body = html.escape(msg)
+        msg_body = "<br/>".join(msg_body.split("\n"))
+        return Format.CHAT_MSG.format(account.aid, destination, tstamp,
+                                      sender, msg_body)
