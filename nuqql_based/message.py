@@ -7,7 +7,7 @@ import html
 from enum import Enum
 
 
-class Format(str, Enum):
+class Message(str, Enum):
     """
     Message format strings
     """
@@ -78,8 +78,8 @@ help
 
         msg_body = html.escape(msg)
         msg_body = "<br/>".join(msg_body.split("\n"))
-        return Format.MESSAGE.format(account.aid, destination, tstamp, sender,
-                                     msg_body)
+        return Message.MESSAGE.format(account.aid, destination, tstamp, sender,
+                                      msg_body)
 
     @staticmethod
     def chat_msg(account, tstamp, sender, destination, msg):
@@ -89,5 +89,5 @@ help
 
         msg_body = html.escape(msg)
         msg_body = "<br/>".join(msg_body.split("\n"))
-        return Format.CHAT_MSG.format(account.aid, destination, tstamp,
-                                      sender, msg_body)
+        return Message.CHAT_MSG.format(account.aid, destination, tstamp,
+                                       sender, msg_body)

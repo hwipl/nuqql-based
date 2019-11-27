@@ -11,7 +11,7 @@ import os
 from nuqql_based import account
 from nuqql_based import logger
 from nuqql_based.callback import Callback
-from nuqql_based.message import Format
+from nuqql_based.message import Message
 from nuqql_based.buddy import Buddy
 
 
@@ -44,7 +44,7 @@ class NuqqlBaseHandler(socketserver.BaseRequestHandler):
         """
 
         # try to find first complete message
-        eom = self.buffer.find(Format.EOM.encode())
+        eom = self.buffer.find(Message.EOM.encode())
         while eom != -1:
             # extract message from buffer
             msg = self.buffer[:eom]
@@ -52,7 +52,7 @@ class NuqqlBaseHandler(socketserver.BaseRequestHandler):
 
             # check if there is another complete message, for
             # next loop iteration
-            eom = self.buffer.find(Format.EOM.encode())
+            eom = self.buffer.find(Message.EOM.encode())
 
             # start message handling
             try:
@@ -114,8 +114,8 @@ def handle_account_list():
     replies = []
     accounts = account.get_accounts()
     for acc in accounts.values():
-        reply = Format.ACCOUNT.format(acc.aid, acc.name, acc.type, acc.user,
-                                      acc.status)
+        reply = Message.ACCOUNT.format(acc.aid, acc.name, acc.type, acc.user,
+                                       acc.status)
         replies.append(reply)
 
     # log event
@@ -150,7 +150,7 @@ def handle_account_add(params):
     result = account.add_account(acc_type, acc_user, acc_pass)
 
     # inform caller about result
-    return Format.INFO.format(result)
+    return Message.INFO.format(result)
 
 
 def handle_account_delete(acc_id):
@@ -165,7 +165,7 @@ def handle_account_delete(acc_id):
     result = account.del_account(acc_id)
 
     # inform caller about result
-    return Format.INFO.format(result)
+    return Message.INFO.format(result)
 
 
 def handle_account_buddies(acc_id, params):
@@ -201,8 +201,8 @@ def handle_account_buddies(acc_id, params):
             continue
 
         # construct replies
-        reply = Format.BUDDY.format(acc_id, buddy.status, buddy.name,
-                                    buddy.alias)
+        reply = Message.BUDDY.format(acc_id, buddy.status, buddy.name,
+                                     buddy.alias)
         replies.append(reply)
 
     # log event
@@ -298,7 +298,7 @@ def handle_account_status(acc_id, params):
     if params[0] == "get":
         status = Callback.GET_STATUS.call(acc_id, ())
         if status:
-            return Format.STATUS.format(acc_id, status)
+            return Message.STATUS.format(acc_id, status)
 
     # set current status
     if params[0] == "set":
@@ -380,15 +380,15 @@ def handle_account(parts):
         try:
             acc_id = int(parts[1])
         except ValueError:
-            return Format.ERROR.format("invalid account ID")
+            return Message.ERROR.format("invalid account ID")
         command = parts[2]
         params = parts[3:]
         # valid account?
         if acc_id not in account.get_accounts().keys():
-            return Format.ERROR.format("invalid account")
+            return Message.ERROR.format("invalid account")
     else:
         # invalid command, ignore
-        return Format.ERROR.format("invalid command")
+        return Message.ERROR.format("invalid command")
 
     if command == "list":
         return handle_account_list()
@@ -416,7 +416,7 @@ def handle_account(parts):
     if command == "chat":
         return handle_account_chat(acc_id, params)
 
-    return Format.ERROR.format("unknown command")
+    return Message.ERROR.format("unknown command")
 
 
 def handle_msg(msg):
@@ -443,7 +443,7 @@ def handle_msg(msg):
 
     # handle "help" command
     if parts[0] == "help":
-        return ("msg", Format.HELP_MSG)
+        return ("msg", Message.HELP_MSG)
 
     # others
     # TODO: ver? who?
