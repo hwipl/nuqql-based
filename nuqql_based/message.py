@@ -71,6 +71,47 @@ help
         return str(self.value)
 
     @staticmethod
+    def info(info_text):
+        """
+        Helper for formatting an "info" message
+        """
+
+        return Message.INFO.format(info_text)
+
+    @staticmethod
+    def error(error_text):
+        """
+        Helper for formatting an "error" message
+        """
+
+        return Message.ERROR.format(error_text)
+
+    @staticmethod
+    def account(acc):
+        """
+        Helper for formatting an "account" message
+        """
+
+        return Message.ACCOUNT.format(acc.aid, acc.name, acc.type, acc.user,
+                                      acc.status)
+
+    @staticmethod
+    def buddy(account, buddy):
+        """
+        Helper for formatting a "buddy" message
+        """
+        return Message.BUDDY.format(account.aid, buddy.status, buddy.name,
+                                    buddy.alias)
+
+    @staticmethod
+    def status(account, status):
+        """
+        Helper for formatting a "status" message
+        """
+
+        return Message.STATUS.format(account.aid, status)
+
+    @staticmethod
     def message(account, tstamp, sender, destination, msg):
         """
         Helper for formatting "message" messages
@@ -80,6 +121,23 @@ help
         msg_body = "<br/>".join(msg_body.split("\n"))
         return Message.MESSAGE.format(account.aid, destination, tstamp, sender,
                                       msg_body)
+
+    @staticmethod
+    def chat_user(account, chat, sender_id, sender_name, status):
+        """
+        Helper for formatting a "chat user" message
+        """
+
+        return Message.CHAT_USER.format(account.aid, chat, sender_id,
+                                        sender_name, status)
+
+    @staticmethod
+    def chat_list(account, chat_id, chat_name, user):
+        """
+        Helper for formatting a "chat list" message
+        """
+
+        return Message.CHAT_LIST.format(account.aid, chat_id, chat_name, user)
 
     @staticmethod
     def chat_msg(account, tstamp, sender, destination, msg):

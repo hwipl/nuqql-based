@@ -114,8 +114,7 @@ def handle_account_list():
     replies = []
     accounts = account.get_accounts()
     for acc in accounts.values():
-        reply = Message.ACCOUNT.format(acc.aid, acc.name, acc.type, acc.user,
-                                       acc.status)
+        reply = Message.account(acc)
         replies.append(reply)
 
     # log event
@@ -150,7 +149,7 @@ def handle_account_add(params):
     result = account.add_account(acc_type, acc_user, acc_pass)
 
     # inform caller about result
-    return Message.INFO.format(result)
+    return Message.info(result)
 
 
 def handle_account_delete(acc_id):
@@ -165,7 +164,7 @@ def handle_account_delete(acc_id):
     result = account.del_account(acc_id)
 
     # inform caller about result
-    return Message.INFO.format(result)
+    return Message.info(result)
 
 
 def handle_account_buddies(acc_id, params):
@@ -201,8 +200,7 @@ def handle_account_buddies(acc_id, params):
             continue
 
         # construct replies
-        reply = Message.BUDDY.format(acc_id, buddy.status, buddy.name,
-                                     buddy.alias)
+        reply = Message.buddy(accounts[acc_id], buddy)
         replies.append(reply)
 
     # log event
@@ -298,7 +296,7 @@ def handle_account_status(acc_id, params):
     if params[0] == "get":
         status = Callback.GET_STATUS.call(acc_id, ())
         if status:
-            return Message.STATUS.format(acc_id, status)
+            return Message.status(acc_id, status)
 
     # set current status
     if params[0] == "set":
@@ -380,15 +378,15 @@ def handle_account(parts):
         try:
             acc_id = int(parts[1])
         except ValueError:
-            return Message.ERROR.format("invalid account ID")
+            return Message.error("invalid account ID")
         command = parts[2]
         params = parts[3:]
         # valid account?
         if acc_id not in account.get_accounts().keys():
-            return Message.ERROR.format("invalid account")
+            return Message.error("invalid account")
     else:
         # invalid command, ignore
-        return Message.ERROR.format("invalid command")
+        return Message.error("invalid command")
 
     if command == "list":
         return handle_account_list()
@@ -416,7 +414,7 @@ def handle_account(parts):
     if command == "chat":
         return handle_account_chat(acc_id, params)
 
-    return Message.ERROR.format("unknown command")
+    return Message.error("unknown command")
 
 
 def handle_msg(msg):
