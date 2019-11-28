@@ -12,7 +12,6 @@ from nuqql_based import account
 from nuqql_based import logger
 from nuqql_based.callback import Callback
 from nuqql_based.message import Message
-from nuqql_based.buddy import Buddy
 
 
 class NuqqlBaseHandler(socketserver.BaseRequestHandler):
@@ -194,7 +193,7 @@ def handle_account_buddies(acc_id, params):
     # get buddies for account
     replies = []
     accounts = account.get_accounts()
-    for buddy in accounts[acc_id].buddies:
+    for buddy in accounts[acc_id].get_buddies():
         # filter online buddies if wanted by client
         if online and buddy.status != "Available":
             continue
@@ -249,28 +248,9 @@ def handle_account_send(acc_id, params):
     user = params[0]
     msg = " ".join(params[1:])      # TODO: do this better?
 
-    accounts = account.get_accounts()
-
     # send message to user
+    accounts = account.get_accounts()
     accounts[acc_id].send_msg(user, msg)
-
-    # check if it is an existing buddy
-    for buddy in accounts[acc_id].buddies:
-        if buddy.name == user:
-            return ""
-
-    # TODO: check buddy adding and store_accounts. Still needed?
-    # new buddy; add it to account
-    new_buddy = Buddy(name=user, alias="")
-    accounts[acc_id].buddies.append(new_buddy)
-
-    # store updated accounts in file
-    account.store_accounts()
-
-    # log event
-    log_msg = "account {0}: new buddy: {1}".format(acc_id, user)
-    log = logger.get_logger(acc_id)
-    log.info(log_msg)
 
     return ""
 

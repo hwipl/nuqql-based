@@ -7,6 +7,7 @@ import stat
 import os
 
 from nuqql_based.callback import Callback
+from nuqql_based.buddy import Buddy
 from nuqql_based import logger
 from nuqql_based import config
 
@@ -27,12 +28,12 @@ class Account:
         self.user = user
         self.password = password
         self.status = status
-        self.buddies = []
+        self._buddies = []
         self.logger = None
 
     def send_msg(self, user, msg):
         """
-        Send message to user. Currently, this only logs the message
+        Send message to user.
         """
 
         # try to send message
@@ -42,6 +43,44 @@ class Account:
         log_msg = "message: to {0}: {1}".format(user, msg)
         log = logger.get_logger(self.aid)
         log.info(log_msg)
+
+        # add unknown buddies on send
+        self.add_buddy(user, "", "")
+
+    def get_buddies(self):
+        """
+        Get the buddy list
+        """
+
+        return self._buddies
+
+    def flush_buddies(self):
+        """
+        Flush buddy list
+        """
+
+        self._buddies = []
+
+    def add_buddy(self, name, alias, status):
+        """
+        Add a buddy to the buddy list
+        """
+
+        for buddy in self._buddies:
+            if buddy.name == name:
+                return
+
+        buddy = Buddy(name, alias, status)
+        self._buddies.append(buddy)
+        self.log("account {0}: new buddy: {1}".format(self.aid, name))
+
+    def log(self, text):
+        """
+        Log text to account's logger if present
+        """
+
+        if self.logger:
+            self.logger.info(text)
 
 
 def store_accounts():
