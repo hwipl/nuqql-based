@@ -7,6 +7,10 @@ import select
 import stat
 import sys
 import os
+try:
+    import daemon
+except ImportError:
+    daemon = None
 
 from nuqql_based import account
 from nuqql_based import logger
@@ -469,9 +473,7 @@ def run_server(config):
 
     if config["daemonize"]:
         # exit if we cannot load the daemon module
-        try:
-            import daemon
-        except ImportError:
+        if not daemon:
             print("Could not load python module \"daemon\", "
                   "no daemonize support.")
             return
