@@ -6,6 +6,8 @@ import configparser
 import stat
 import os
 
+from threading import Lock
+
 from nuqql_based.callback import Callback
 from nuqql_based.buddy import Buddy
 from nuqql_based import logger
@@ -29,6 +31,7 @@ class Account:
         self.password = password
         self.status = status
         self._buddies = []
+        self._buddies_lock = Lock()
         self.logger = None
 
     def send_msg(self, user, msg):
@@ -52,27 +55,54 @@ class Account:
         Get the buddy list
         """
 
-        return self._buddies
+        self._buddies_lock.acquire()
+        buddies = self._buddies[:]
+        self._buddies_lock.release()
+
+        return buddies
+
+    def _flush_buddies(self):
+        self._buddies = []
 
     def flush_buddies(self):
         """
         Flush buddy list
         """
 
-        self._buddies = []
+        self._buddies_lock.acquire()
+        self._flush_buddies()
+        self._buddies_lock.release()
+
+    def _add_buddy(self, name, alias, status):
+        for buddy in self._buddies:
+            if buddy.name == name:
+                return False
+
+        buddy = Buddy(name, alias, status)
+        self._buddies.append(buddy)
+        return True
 
     def add_buddy(self, name, alias, status):
         """
         Add a buddy to the buddy list
         """
 
-        for buddy in self._buddies:
-            if buddy.name == name:
-                return
+        self._buddies_lock.acquire()
+        was_new = self._add_buddy(name, alias, status)
+        self._buddies_lock.release()
+        if was_new:
+            self.log("account {0}: new buddy: {1}".format(self.aid, name))
 
-        buddy = Buddy(name, alias, status)
-        self._buddies.append(buddy)
-        self.log("account {0}: new buddy: {1}".format(self.aid, name))
+    def update_buddies(self, buddy_list):
+        """
+        Update buddy list with buddy_list (list of name, alias, status tuples)
+        """
+
+        self._buddies_lock.acquire()
+        self._flush_buddies()
+        for name, alias, status in buddy_list:
+            self._add_buddy(name, alias, status)
+        self._buddies_lock.release()
 
     def log(self, text):
         """
