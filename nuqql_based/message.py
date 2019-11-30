@@ -149,3 +149,16 @@ help
         msg_body = "<br/>".join(msg_body.split("\n"))
         return Message.CHAT_MSG.format(account.aid, destination, tstamp,
                                        sender, msg_body)
+
+    @staticmethod
+    def is_message(msg):
+        """
+        Helper for detecting if message (string) is a "message" or
+        "chat message" message.
+        """
+
+        if msg.startswith("chat: msg:") or \
+           msg.startswith("message:"):
+            return True
+
+        return False
