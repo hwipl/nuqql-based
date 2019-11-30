@@ -36,10 +36,12 @@ class NuqqlBaseHandler(socketserver.BaseRequestHandler):
         # get messages from callback for each account
         accounts = account.get_accounts()
         for acc in accounts.values():
-            messages = Callback.GET_MESSAGES.call(acc.aid, ())
-            if messages:
-                messages = messages.encode()
-                self.request.sendall(messages)
+            messages = acc.get_messages()
+            # TODO: this expects a list. change to string? document list req?
+            messages += Callback.GET_MESSAGES.call(acc.aid, ())
+            for msg in messages:
+                msg = msg.encode()
+                self.request.sendall(msg)
 
     def handle_messages(self):
         """

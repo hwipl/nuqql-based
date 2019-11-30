@@ -32,6 +32,8 @@ class Account:
         self.status = status
         self._buddies = []
         self._buddies_lock = Lock()
+        self._messages = []
+        self._messages_lock = Lock()
         self.logger = None
 
     def send_msg(self, user, msg):
@@ -49,6 +51,27 @@ class Account:
 
         # add unknown buddies on send
         self.add_buddy(user, "", "")
+
+    def receive_msg(self, msg):
+        """
+        Receive a message from other users or the backend
+        """
+
+        self._messages_lock.acquire()
+        self._messages.append(msg)
+        self._messages_lock.release()
+
+    def get_messages(self):
+        """
+        Get received messages as list
+        """
+
+        self._messages_lock.acquire()
+        messages = self._messages[:]
+        self._messages = []
+        self._messages_lock.release()
+
+        return messages
 
     def get_buddies(self):
         """
