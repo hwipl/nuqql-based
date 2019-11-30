@@ -9,6 +9,7 @@ import os
 from threading import Lock
 
 from nuqql_based.callback import Callback
+from nuqql_based.message import Message
 from nuqql_based.buddy import Buddy
 from nuqql_based import logger
 from nuqql_based import config
@@ -34,6 +35,8 @@ class Account:
         self._buddies_lock = Lock()
         self._messages = []
         self._messages_lock = Lock()
+        self._history = []
+        self._history_lock = Lock()
         self.logger = None
 
     def send_msg(self, user, msg):
@@ -61,6 +64,13 @@ class Account:
         self._messages.append(msg)
         self._messages_lock.release()
 
+        if Message.is_message(msg):
+            # TODO: add configuration parameter if history is wanted?
+            # TODO: add timestamp?
+            self._history_lock.acquire()
+            self._history.append(msg)
+            self._history_lock.release()
+
     def get_messages(self):
         """
         Get received messages as list
@@ -72,6 +82,18 @@ class Account:
         self._messages_lock.release()
 
         return messages
+
+    def get_history(self):
+        """
+        Get the message history
+        """
+
+        # TODO: add timestamp parameter?
+        self._history_lock.acquire()
+        history = self._history[:]
+        self._history_lock.release()
+
+        return history
 
     def get_buddies(self):
         """

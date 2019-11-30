@@ -238,7 +238,14 @@ def handle_account_collect(acc_id, params):
     log.info(log_msg)
 
     # collect messages
-    return Callback.COLLECT_MESSAGES.call(acc_id, ())
+    accounts = account.get_accounts()
+    acc = accounts[acc_id]
+    history = acc.get_history()
+    # TODO: this expects a list. change to string? document list req?
+    history += Callback.COLLECT_MESSAGES.call(acc_id, ())
+
+    # return history as single string
+    return "".join(history)
 
 
 def handle_account_send(acc_id, params):
