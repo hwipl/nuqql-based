@@ -6,10 +6,6 @@ import logging
 import stat
 import os
 
-# TODO: move LOGLEVES to this file?
-from nuqql_based.config import LOGLEVELS
-
-
 LOGGERS = {}
 
 
@@ -19,7 +15,7 @@ def init_logger(config, name, file_name):
     """
 
     # determine logging level from config
-    loglevel = LOGLEVELS[config["loglevel"]]
+    loglevel = config["loglevel"]
 
     # create logger
     logger = logging.getLogger(name)

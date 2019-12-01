@@ -10,7 +10,7 @@ import stat
 import os
 
 # logging levels
-LOGLEVELS = {
+LOGLEVEL_MAP = {
     "debug":    logging.DEBUG,
     "info":     logging.INFO,
     "warn":     logging.WARNING,
@@ -99,7 +99,7 @@ def read_config_file():
                 print(error_msg)
 
     # make sure log level is correct
-    if CONFIG["loglevel"] not in LOGLEVELS:
+    if CONFIG["loglevel"] not in LOGLEVEL_MAP:
         CONFIG["loglevel"] = DEFAULT_LOGLEVEL
         error_msg = "Error parsing config file: wrong loglevel"
         print(error_msg)
@@ -134,6 +134,9 @@ def init_config(backend_name="based"):
             CONFIG[key] = pathlib.Path(value)
         else:
             CONFIG[key] = value
+
+    # convert log level
+    CONFIG["loglevel"] = LOGLEVEL_MAP[CONFIG["loglevel"]]
 
     return CONFIG
 
