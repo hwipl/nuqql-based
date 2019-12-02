@@ -147,9 +147,12 @@ class Config:
 
         return self.config
 
-    def get(self):
+    def get(self, entry=None):
         """
-        Helper for getting the config
+        Helper for getting the config or a single entry from the config
         """
+
+        if entry:
+            return self.config[entry]
 
         return self.config
