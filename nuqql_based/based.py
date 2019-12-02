@@ -30,7 +30,8 @@ def start(name, callbacks):
     logger.init_main_logger(conf)
 
     # load accounts
-    accounts = account.load_accounts()
+    account_list = account.AccountList(conf)
+    accounts = account_list.load()
 
     # initialize account loggers
     logger.init_account_loggers(conf, accounts)
@@ -41,7 +42,7 @@ def start(name, callbacks):
 
     # start server
     try:
-        server.run_server(conf)
+        server.run_server(conf, account_list)
     except KeyboardInterrupt:
         Callback.BASED_INTERRUPT.call(-1, ())
     finally:

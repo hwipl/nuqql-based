@@ -12,10 +12,6 @@ from nuqql_based.callback import Callback
 from nuqql_based.message import Message
 from nuqql_based.buddy import Buddy
 from nuqql_based import logger
-from nuqql_based import config
-
-
-ACCOUNTS = {}
 
 
 class Account:
@@ -158,163 +154,165 @@ class Account:
             self.logger.info(text)
 
 
-def store_accounts():
+class AccountList:
     """
-    Store accounts in a file.
-    """
-
-    # set accounts file and init configparser
-    conf = config.get_config()
-    accounts_file = conf["dir"] / "accounts.ini"
-    accconf = configparser.ConfigParser()
-    accconf.optionxform = lambda option: option
-
-    # construct accounts config that will be written to the accounts file
-    for acc in ACCOUNTS.values():
-        section = "account {}".format(acc.aid)
-        accconf[section] = {}
-        accconf[section]["id"] = str(acc.aid)
-        accconf[section]["type"] = acc.type
-        accconf[section]["user"] = acc.user
-        accconf[section]["password"] = acc.password
-
-    try:
-        with open(accounts_file, "w") as acc_file:
-            # make sure only user can read/write file before storing anything
-            os.chmod(accounts_file, stat.S_IRUSR | stat.S_IWUSR)
-
-            # write accounts to file
-            accconf.write(acc_file)
-    except (OSError, configparser.Error) as error:
-        error_msg = "Error storing accounts file: {}".format(error)
-        log = logger.get_logger("main")
-        log.error(error_msg)
-
-
-def load_accounts():
-    """
-    Load accounts from a file.
+    List of all accounts
     """
 
-    # make sure path and file exist
-    conf = config.get_config()
-    conf["dir"].mkdir(parents=True, exist_ok=True)
-    os.chmod(conf["dir"], stat.S_IRWXU)
-    accounts_file = conf["dir"] / "accounts.ini"
-    if not accounts_file.exists():
-        return ACCOUNTS
+    def __init__(self, config):
+        self.config = config
+        self.accounts = {}
 
-    # make sure only user can read/write file before using it
-    os.chmod(accounts_file, stat.S_IRUSR | stat.S_IWUSR)
+    def store(self):
+        """
+        Store accounts in a file.
+        """
 
-    # read config file
-    try:
+        # set accounts file and init configparser
+        accounts_file = self.config["dir"] / "accounts.ini"
         accconf = configparser.ConfigParser()
-        accconf.read(accounts_file)
-    except configparser.Error as error:
-        error_msg = "Error loading accounts file: {}".format(error)
-        log = logger.get_logger("main")
-        log.error(error_msg)
+        accconf.optionxform = lambda option: option
 
-    for section in accconf.sections():
-        # try to read account from account file
+        # construct accounts config that will be written to the accounts file
+        for acc in self.accounts.values():
+            section = "account {}".format(acc.aid)
+            accconf[section] = {}
+            accconf[section]["id"] = str(acc.aid)
+            accconf[section]["type"] = acc.type
+            accconf[section]["user"] = acc.user
+            accconf[section]["password"] = acc.password
+
         try:
-            acc_id = int(accconf[section]["id"])
-            acc_type = accconf[section]["type"]
-            acc_user = accconf[section]["user"]
-            acc_pass = accconf[section]["password"]
-        except KeyError as error:
-            error_msg = "Error loading account: {}".format(error)
+            with open(accounts_file, "w") as acc_file:
+                # make sure only user can read/write file before storing
+                # anything
+                os.chmod(accounts_file, stat.S_IRUSR | stat.S_IWUSR)
+
+                # write accounts to file
+                accconf.write(acc_file)
+        except (OSError, configparser.Error) as error:
+            error_msg = "Error storing accounts file: {}".format(error)
             log = logger.get_logger("main")
             log.error(error_msg)
-            continue
 
-        # add account
+    def load(self):
+        """
+        Load accounts from a file.
+        """
+
+        # make sure path and file exist
+        self.config["dir"].mkdir(parents=True, exist_ok=True)
+        os.chmod(self.config["dir"], stat.S_IRWXU)
+        accounts_file = self.config["dir"] / "accounts.ini"
+        if not accounts_file.exists():
+            return self.accounts
+
+        # make sure only user can read/write file before using it
+        os.chmod(accounts_file, stat.S_IRUSR | stat.S_IWUSR)
+
+        # read config file
+        try:
+            accconf = configparser.ConfigParser()
+            accconf.read(accounts_file)
+        except configparser.Error as error:
+            error_msg = "Error loading accounts file: {}".format(error)
+            log = logger.get_logger("main")
+            log.error(error_msg)
+
+        for section in accconf.sections():
+            # try to read account from account file
+            try:
+                acc_id = int(accconf[section]["id"])
+                acc_type = accconf[section]["type"]
+                acc_user = accconf[section]["user"]
+                acc_pass = accconf[section]["password"]
+            except KeyError as error:
+                error_msg = "Error loading account: {}".format(error)
+                log = logger.get_logger("main")
+                log.error(error_msg)
+                continue
+
+            # add account
+            new_acc = Account(aid=acc_id, atype=acc_type, user=acc_user,
+                              password=acc_pass)
+            self.accounts[new_acc.aid] = new_acc
+
+        return self.accounts
+
+    def get(self):
+        """
+        Helper for getting the accounts
+        """
+
+        return self.accounts
+
+    def _get_free_account_id(self):
+        """
+        Get next free account id
+        """
+
+        if not self.accounts:
+            return 0
+
+        last_acc_id = -1
+        for acc_id in sorted(self.accounts.keys()):
+            if acc_id - last_acc_id >= 2:
+                return last_acc_id + 1
+            if acc_id - last_acc_id == 1:
+                last_acc_id = acc_id
+
+        return last_acc_id + 1
+
+    def add(self, acc_type, acc_user, acc_pass):
+        """
+        Add a new account
+        """
+
+        acc_id = self._get_free_account_id()
         new_acc = Account(aid=acc_id, atype=acc_type, user=acc_user,
                           password=acc_pass)
-        ACCOUNTS[new_acc.aid] = new_acc
 
-    return ACCOUNTS
+        # make sure the account does not exist
+        for acc in self.accounts.values():
+            if acc.type == new_acc.type and acc.user == new_acc.user:
+                return "account already exists."
 
+        # new account; add it
+        self.accounts[new_acc.aid] = new_acc
 
-def get_accounts():
-    """
-    Helper for getting the accounts
-    """
+        # store updated accounts in file
+        self.store()
 
-    return ACCOUNTS
+        # create new logger
+        new_acc.logger = logger.add_account_logger(self.config, acc_id)
 
+        # log event
+        log_msg = "account new: id {0} type {1} user {2}".format(new_acc.aid,
+                                                                 new_acc.type,
+                                                                 new_acc.user)
+        log = logger.get_logger("main")
+        log.info(log_msg)
 
-def _get_free_account_id():
-    """
-    Get next free account id
-    """
+        # notify callback (if present) about new account
+        Callback.ADD_ACCOUNT.call(new_acc.aid, (new_acc, ))
 
-    if not ACCOUNTS:
-        return 0
+        return "new account added."
 
-    last_acc_id = -1
-    for acc_id in sorted(ACCOUNTS.keys()):
-        if acc_id - last_acc_id >= 2:
-            return last_acc_id + 1
-        if acc_id - last_acc_id == 1:
-            last_acc_id = acc_id
+    def delete(self, acc_id):
+        """
+        Delete an account
+        """
 
-    return last_acc_id + 1
+        # remove account and update accounts file
+        del self.accounts[acc_id]
+        self.store()
 
+        # log event
+        log_msg = "account deleted: id {0}".format(acc_id)
+        log = logger.get_logger("main")
+        log.info(log_msg)
 
-def add_account(acc_type, acc_user, acc_pass):
-    """
-    Add a new account
-    """
+        # notify callback (if present) about deleted account
+        Callback.DEL_ACCOUNT.call(acc_id, ())
 
-    acc_id = _get_free_account_id()
-    new_acc = Account(aid=acc_id, atype=acc_type, user=acc_user,
-                      password=acc_pass)
-
-    # make sure the account does not exist
-    for acc in ACCOUNTS.values():
-        if acc.type == new_acc.type and acc.user == new_acc.user:
-            return "account already exists."
-
-    # new account; add it
-    ACCOUNTS[new_acc.aid] = new_acc
-
-    # store updated accounts in file
-    store_accounts()
-
-    # create new logger
-    conf = config.get_config()
-    new_acc.logger = logger.add_account_logger(conf, acc_id)
-
-    # log event
-    log_msg = "account new: id {0} type {1} user {2}".format(new_acc.aid,
-                                                             new_acc.type,
-                                                             new_acc.user)
-    log = logger.get_logger("main")
-    log.info(log_msg)
-
-    # notify callback (if present) about new account
-    Callback.ADD_ACCOUNT.call(new_acc.aid, (new_acc, ))
-
-    return "new account added."
-
-
-def del_account(acc_id):
-    """
-    Delete an account
-    """
-
-    # remove account and update accounts file
-    del ACCOUNTS[acc_id]
-    store_accounts()
-
-    # log event
-    log_msg = "account deleted: id {0}".format(acc_id)
-    log = logger.get_logger("main")
-    log.info(log_msg)
-
-    # notify callback (if present) about deleted account
-    Callback.DEL_ACCOUNT.call(acc_id, ())
-
-    return "account {} deleted.".format(acc_id)
+        return "account {} deleted.".format(acc_id)

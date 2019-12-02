@@ -12,10 +12,11 @@ try:
 except ImportError:
     daemon = None
 
-from nuqql_based import account
 from nuqql_based import logger
 from nuqql_based.callback import Callback
 from nuqql_based.message import Message
+
+ACCOUNT_LIST = None
 
 
 class NuqqlBaseHandler(socketserver.BaseRequestHandler):
@@ -34,7 +35,7 @@ class NuqqlBaseHandler(socketserver.BaseRequestHandler):
         """
 
         # get messages from callback for each account
-        accounts = account.get_accounts()
+        accounts = ACCOUNT_LIST.get()
         for acc in accounts.values():
             messages = acc.get_messages()
             # TODO: this expects a list. change to string? document list req?
@@ -117,7 +118,7 @@ def handle_account_list():
     """
 
     replies = []
-    accounts = account.get_accounts()
+    accounts = ACCOUNT_LIST.get()
     for acc in accounts.values():
         reply = Message.account(acc)
         replies.append(reply)
@@ -151,7 +152,7 @@ def handle_account_add(params):
     acc_pass = params[2]
 
     # add account
-    result = account.add_account(acc_type, acc_user, acc_pass)
+    result = ACCOUNT_LIST.add(acc_type, acc_user, acc_pass)
 
     # inform caller about result
     return Message.info(result)
@@ -166,7 +167,7 @@ def handle_account_delete(acc_id):
     """
 
     # delete account
-    result = account.del_account(acc_id)
+    result = ACCOUNT_LIST.delete(acc_id)
 
     # inform caller about result
     return Message.info(result)
@@ -198,7 +199,7 @@ def handle_account_buddies(acc_id, params):
 
     # get buddies for account
     replies = []
-    accounts = account.get_accounts()
+    accounts = ACCOUNT_LIST.get()
     for buddy in accounts[acc_id].get_buddies():
         # filter online buddies if wanted by client
         if online and buddy.status != "Available":
@@ -238,7 +239,7 @@ def handle_account_collect(acc_id, params):
     log.info(log_msg)
 
     # collect messages
-    accounts = account.get_accounts()
+    accounts = ACCOUNT_LIST.get()
     acc = accounts[acc_id]
     history = acc.get_history()
     # TODO: this expects a list. change to string? document list req?
@@ -262,7 +263,7 @@ def handle_account_send(acc_id, params):
     msg = " ".join(params[1:])      # TODO: do this better?
 
     # send message to user
-    accounts = account.get_accounts()
+    accounts = ACCOUNT_LIST.get()
     accounts[acc_id].send_msg(user, msg)
 
     return ""
@@ -375,7 +376,7 @@ def handle_account(parts):
         command = parts[2]
         params = parts[3:]
         # valid account?
-        if acc_id not in account.get_accounts().keys():
+        if acc_id not in ACCOUNT_LIST.get().keys():
             return Message.error("invalid account")
     else:
         # invalid command, ignore
@@ -425,7 +426,7 @@ def handle_msg(msg):
     # handle "bye" and "quit" commands
     if parts[0] in ("bye", "quit"):
         # call disconnect or quit callback in every account
-        for acc in account.get_accounts().values():
+        for acc in ACCOUNT_LIST.get().values():
             if parts[0] == "bye":
                 Callback.DISCONNECT.call(acc.aid, ())
             if parts[0] == "quit":
@@ -475,10 +476,14 @@ def run_unix_server(config):
         server.serve_forever()
 
 
-def run_server(config):
+def run_server(config, account_list):
     """
     Run the server; can be AF_INET or AF_UNIX.
     """
+
+    # save account list
+    global ACCOUNT_LIST
+    ACCOUNT_LIST = account_list
 
     if config["daemonize"]:
         # exit if we cannot load the daemon module
