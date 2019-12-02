@@ -7,8 +7,8 @@ Basic nuqql backend
 import sys
 
 from nuqql_based.callback import Callback
+from nuqql_based.config import Config
 from nuqql_based import account
-from nuqql_based import config
 from nuqql_based import logger
 from nuqql_based import server
 
@@ -23,7 +23,8 @@ def start(name, callbacks):
         cback.register(func)
 
     # initialize configuration from command line and config file
-    conf = config.init_config(name)
+    config = Config(name)
+    conf = config.get()
     Callback.BASED_CONFIG.call(-1, (conf, ))
 
     # initialize main logger
