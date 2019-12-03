@@ -6,9 +6,9 @@ Basic nuqql backend
 
 import sys
 
+from nuqql_based.account import AccountList
 from nuqql_based.callback import Callback
 from nuqql_based.config import Config
-from nuqql_based import account
 from nuqql_based import logger
 from nuqql_based import server
 
@@ -31,7 +31,7 @@ def start(name, callbacks):
     logger.init_main_logger(conf)
 
     # load accounts
-    account_list = account.AccountList(conf)
+    account_list = AccountList(conf)
     accounts = account_list.load()
 
     # initialize account loggers
