@@ -9,8 +9,8 @@ import sys
 from nuqql_based.account import AccountList
 from nuqql_based.callback import Callback
 from nuqql_based.config import Config
+from nuqql_based.server import Server
 from nuqql_based import logger
-from nuqql_based import server
 
 
 def start(name, callbacks):
@@ -43,7 +43,8 @@ def start(name, callbacks):
 
     # start server
     try:
-        server.run_server(conf, account_list)
+        server = Server(config, account_list)
+        server.run()
     except KeyboardInterrupt:
         Callback.BASED_INTERRUPT.call(-1, ())
     finally:
