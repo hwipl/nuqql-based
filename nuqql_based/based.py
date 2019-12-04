@@ -35,9 +35,6 @@ def start(name, callback_list):
     account_list = AccountList(config, loggers, callbacks)
     accounts = account_list.load()
 
-    # call add account callback for each account
-    for acc in accounts.values():
-        callbacks.call(Callback.ADD_ACCOUNT, acc.aid, (acc, ))
 
     # start server
     try:
