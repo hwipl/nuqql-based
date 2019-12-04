@@ -8,9 +8,9 @@ import sys
 
 from nuqql_based.account import AccountList
 from nuqql_based.callback import Callback
+from nuqql_based.logger import Loggers
 from nuqql_based.config import Config
 from nuqql_based.server import Server
-from nuqql_based import logger
 
 
 def start(name, callbacks):
@@ -28,14 +28,11 @@ def start(name, callbacks):
     Callback.BASED_CONFIG.call(-1, (conf, ))
 
     # initialize main logger
-    logger.init_main_logger(conf)
+    loggers = Loggers(config)
 
     # load accounts
-    account_list = AccountList(conf)
+    account_list = AccountList(conf, loggers)
     accounts = account_list.load()
-
-    # initialize account loggers
-    logger.init_account_loggers(conf, accounts)
 
     # call add account callback for each account
     for acc in accounts.values():
@@ -43,7 +40,7 @@ def start(name, callbacks):
 
     # start server
     try:
-        server = Server(config, account_list)
+        server = Server(config, loggers, account_list)
         server.run()
     except KeyboardInterrupt:
         Callback.BASED_INTERRUPT.call(-1, ())

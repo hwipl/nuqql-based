@@ -12,7 +12,6 @@ try:
 except ImportError:
     daemon = None
 
-from nuqql_based import logger
 from nuqql_based.callback import Callback
 from nuqql_based.message import Message
 
@@ -130,9 +129,10 @@ class Server:
     Based server class
     """
 
-    def __init__(self, config, account_list):
+    def __init__(self, config, loggers, account_list):
         self.server = None
         self.config = config
+        self.loggers = loggers
         self.account_list = account_list
 
     def _run_inet(self):
@@ -202,7 +202,7 @@ class Server:
 
         # log event
         log_msg = "account list: {0}".format(replies)
-        log = logger.get_logger("main")
+        log = self.loggers.get("main")
         log.info(log_msg)
 
         # return a single string
@@ -284,7 +284,7 @@ class Server:
 
         # log event
         log_msg = "account {0} buddies: {1}".format(acc_id, replies)
-        log = logger.get_logger(acc_id)
+        log = self.loggers.get(acc_id)
         log.info(log_msg)
 
         # return replies as single string
@@ -307,7 +307,7 @@ class Server:
 
         # log event
         log_msg = "account {0} collect {1}".format(acc_id, time)
-        log = logger.get_logger(acc_id)
+        log = self.loggers.get(acc_id)
         log.info(log_msg)
 
         # collect messages

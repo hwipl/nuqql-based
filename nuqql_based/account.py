@@ -11,7 +11,6 @@ from threading import Lock
 from nuqql_based.callback import Callback
 from nuqql_based.message import Message
 from nuqql_based.buddy import Buddy
-from nuqql_based import logger
 
 
 class Account:
@@ -45,8 +44,7 @@ class Account:
 
         # log message
         log_msg = "message: to {0}: {1}".format(user, msg)
-        log = logger.get_logger(self.aid)
-        log.info(log_msg)
+        self.logger.info(log_msg)
 
         # add unknown buddies on send
         self.add_buddy(user, "", "")
@@ -159,8 +157,10 @@ class AccountList:
     List of all accounts
     """
 
-    def __init__(self, config):
+    def __init__(self, config, loggers):
         self.config = config
+        self.loggers = loggers
+        # TODO: add locking?
         self.accounts = {}
 
     def store(self):
@@ -192,7 +192,7 @@ class AccountList:
                 accconf.write(acc_file)
         except (OSError, configparser.Error) as error:
             error_msg = "Error storing accounts file: {}".format(error)
-            log = logger.get_logger("main")
+            log = self.loggers.get("main")
             log.error(error_msg)
 
     def load(self):
@@ -216,7 +216,7 @@ class AccountList:
             accconf.read(accounts_file)
         except configparser.Error as error:
             error_msg = "Error loading accounts file: {}".format(error)
-            log = logger.get_logger("main")
+            log = self.loggers.get("main")
             log.error(error_msg)
 
         for section in accconf.sections():
@@ -228,14 +228,12 @@ class AccountList:
                 acc_pass = accconf[section]["password"]
             except KeyError as error:
                 error_msg = "Error loading account: {}".format(error)
-                log = logger.get_logger("main")
+                log = self.loggers.get("main")
                 log.error(error_msg)
                 continue
 
             # add account
-            new_acc = Account(aid=acc_id, atype=acc_type, user=acc_user,
-                              password=acc_pass)
-            self.accounts[new_acc.aid] = new_acc
+            self.add(acc_type, acc_user, acc_pass, acc_id=acc_id)
 
         return self.accounts
 
@@ -263,12 +261,13 @@ class AccountList:
 
         return last_acc_id + 1
 
-    def add(self, acc_type, acc_user, acc_pass):
+    def add(self, acc_type, acc_user, acc_pass, acc_id=None):
         """
         Add a new account
         """
 
-        acc_id = self._get_free_account_id()
+        if acc_id is None:
+            acc_id = self._get_free_account_id()
         new_acc = Account(aid=acc_id, atype=acc_type, user=acc_user,
                           password=acc_pass)
 
@@ -284,13 +283,13 @@ class AccountList:
         self.store()
 
         # create new logger
-        new_acc.logger = logger.add_account_logger(self.config, acc_id)
+        new_acc.logger = self.loggers.add_account(acc_id)
 
         # log event
         log_msg = "account new: id {0} type {1} user {2}".format(new_acc.aid,
                                                                  new_acc.type,
                                                                  new_acc.user)
-        log = logger.get_logger("main")
+        log = self.loggers.get("main")
         log.info(log_msg)
 
         # notify callback (if present) about new account
@@ -309,7 +308,7 @@ class AccountList:
 
         # log event
         log_msg = "account deleted: id {0}".format(acc_id)
-        log = logger.get_logger("main")
+        log = self.loggers.get("main")
         log.info(log_msg)
 
         # notify callback (if present) about deleted account
