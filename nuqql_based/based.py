@@ -13,38 +13,45 @@ from nuqql_based.config import Config
 from nuqql_based.server import Server
 
 
-def start(name, callback_list):
+class Based:
     """
-    Initialize and start based with name and list of callbacks
+    Based class
     """
 
-    # register all callbacks
-    callbacks = Callbacks()
-    for cback, func in callback_list:
-        callbacks.add(cback, func)
+    def __init__(self, name, callbacks):
+        # register all callbacks
+        self.callbacks = Callbacks()
+        for cback, func in callbacks:
+            self.callbacks.add(cback, func)
 
-    # initialize configuration from command line and config file
-    config = Config(name)
-    conf = config.get()
-    callbacks.call(Callback.BASED_CONFIG, -1, (conf, ))
+        # load config
+        self.config = Config(name)
+        self.callbacks.call(Callback.BASED_CONFIG, -1, (self.config.get(), ))
 
-    # initialize main logger
-    loggers = Loggers(config)
+        # init loggers
+        self.loggers = Loggers(self.config)
 
-    # load accounts
-    account_list = AccountList(config, loggers, callbacks)
-    accounts = account_list.load()
+        # init account list
+        self.accounts = AccountList(self.config, self.loggers, self.callbacks)
+        self.accounts.load()
 
+        # init server
+        self.server = Server(self.config, self.loggers, self.callbacks,
+                             self.accounts)
 
-    # start server
-    try:
-        server = Server(config, loggers, callbacks, account_list)
-        server.run()
-    except KeyboardInterrupt:
-        callbacks.call(Callback.BASED_INTERRUPT, -1, ())
-    finally:
-        callbacks.call(Callback.BASED_QUIT, -1, ())
-        sys.exit()
+    def start(self):
+        """
+        Start based
+        """
+
+        # start server
+        try:
+            self.server.run()
+        except KeyboardInterrupt:
+            self.callbacks.call(Callback.BASED_INTERRUPT, -1, ())
+        finally:
+            self.callbacks.call(Callback.BASED_QUIT, -1, ())
+            sys.exit()
 
 
 def main():
@@ -52,7 +59,8 @@ def main():
     Main function
     """
 
-    start("based", [])
+    based = Based("based", [])
+    based.start()
 
 
 if __name__ == "__main__":
