@@ -33,6 +33,7 @@ class Account:
         self._history = []
         self._history_lock = Lock()
         self.logger = None
+        self.callbacks = None
 
     def send_msg(self, user, msg):
         """
@@ -40,7 +41,7 @@ class Account:
         """
 
         # try to send message
-        Callback.SEND_MESSAGE.call(self.aid, (user, msg))
+        self.callbacks.call(Callback.SEND_MESSAGE, self.aid, (user, msg))
 
         # log message
         log_msg = "message: to {0}: {1}".format(user, msg)
@@ -157,9 +158,10 @@ class AccountList:
     List of all accounts
     """
 
-    def __init__(self, config, loggers):
+    def __init__(self, config, loggers, callbacks):
         self.config = config
         self.loggers = loggers
+        self.callbacks = callbacks
         # TODO: add locking?
         self.accounts = {}
 
@@ -270,6 +272,7 @@ class AccountList:
             acc_id = self._get_free_account_id()
         new_acc = Account(aid=acc_id, atype=acc_type, user=acc_user,
                           password=acc_pass)
+        new_acc.callbacks = self.callbacks
 
         # make sure the account does not exist
         for acc in self.accounts.values():
@@ -293,7 +296,7 @@ class AccountList:
         log.info(log_msg)
 
         # notify callback (if present) about new account
-        Callback.ADD_ACCOUNT.call(new_acc.aid, (new_acc, ))
+        self.callbacks.call(Callback.ADD_ACCOUNT, new_acc.aid, (new_acc, ))
 
         return "new account added."
 
@@ -312,6 +315,6 @@ class AccountList:
         log.info(log_msg)
 
         # notify callback (if present) about deleted account
-        Callback.DEL_ACCOUNT.call(acc_id, ())
+        self.callbacks.call(Callback.DEL_ACCOUNT, acc_id, ())
 
         return "account {} deleted.".format(acc_id)

@@ -7,45 +7,46 @@ Basic nuqql backend
 import sys
 
 from nuqql_based.account import AccountList
-from nuqql_based.callback import Callback
+from nuqql_based.callback import Callbacks, Callback
 from nuqql_based.logger import Loggers
 from nuqql_based.config import Config
 from nuqql_based.server import Server
 
 
-def start(name, callbacks):
+def start(name, callback_list):
     """
     Initialize and start based with name and list of callbacks
     """
 
     # register all callbacks
-    for cback, func in callbacks:
-        cback.register(func)
+    callbacks = Callbacks()
+    for cback, func in callback_list:
+        callbacks.add(cback, func)
 
     # initialize configuration from command line and config file
     config = Config(name)
     conf = config.get()
-    Callback.BASED_CONFIG.call(-1, (conf, ))
+    callbacks.call(Callback.BASED_CONFIG, -1, (conf, ))
 
     # initialize main logger
     loggers = Loggers(config)
 
     # load accounts
-    account_list = AccountList(conf, loggers)
+    account_list = AccountList(conf, loggers, callbacks)
     accounts = account_list.load()
 
     # call add account callback for each account
     for acc in accounts.values():
-        Callback.ADD_ACCOUNT.call(acc.aid, (acc, ))
+        callbacks.call(Callback.ADD_ACCOUNT, acc.aid, (acc, ))
 
     # start server
     try:
-        server = Server(config, loggers, account_list)
+        server = Server(config, loggers, callbacks, account_list)
         server.run()
     except KeyboardInterrupt:
-        Callback.BASED_INTERRUPT.call(-1, ())
+        callbacks.call(Callback.BASED_INTERRUPT, -1, ())
     finally:
-        Callback.BASED_QUIT.call(-1, ())
+        callbacks.call(Callback.BASED_QUIT, -1, ())
         sys.exit()
 
 

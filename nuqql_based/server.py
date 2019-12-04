@@ -46,12 +46,13 @@ class _Handler(socketserver.BaseRequestHandler):
 
         # get messages from callback for each account
         based_server = self.server.based_server
+        callbacks = based_server.callbacks
         account_list = based_server.account_list
         accounts = account_list.get()
         for acc in accounts.values():
             messages = acc.get_messages()
             # TODO: this expects a list. change to string? document list req?
-            messages += Callback.GET_MESSAGES.call(acc.aid, ())
+            messages += callbacks.call(Callback.GET_MESSAGES, acc.aid, ())
             for msg in messages:
                 msg = msg.encode()
                 self.request.sendall(msg)
@@ -129,10 +130,11 @@ class Server:
     Based server class
     """
 
-    def __init__(self, config, loggers, account_list):
+    def __init__(self, config, loggers, callbacks, account_list):
         self.server = None
         self.config = config
         self.loggers = loggers
+        self.callbacks = callbacks
         self.account_list = account_list
 
     def _run_inet(self):
@@ -263,7 +265,7 @@ class Server:
         """
 
         # update buddy list
-        Callback.UPDATE_BUDDIES.call(acc_id, ())
+        self.callbacks.call(Callback.UPDATE_BUDDIES, acc_id, ())
 
         # filter online buddies?
         online = False
@@ -315,7 +317,7 @@ class Server:
         acc = accounts[acc_id]
         history = acc.get_history()
         # TODO: this expects a list. change to string? document list req?
-        history += Callback.COLLECT_MESSAGES.call(acc_id, ())
+        history += self.callbacks.call(Callback.COLLECT_MESSAGES, acc_id, ())
 
         # return history as single string
         return "".join(history)
@@ -339,8 +341,7 @@ class Server:
 
         return ""
 
-    @staticmethod
-    def _handle_account_status(acc_id, params):
+    def _handle_account_status(self, acc_id, params):
         """
         Get or set current status of account
 
@@ -359,7 +360,7 @@ class Server:
 
         # get current status
         if params[0] == "get":
-            status = Callback.GET_STATUS.call(acc_id, ())
+            status = self.callbacks.call(Callback.GET_STATUS, acc_id, ())
             if status:
                 return Message.status(acc_id, status)
 
@@ -369,11 +370,10 @@ class Server:
                 return ""
 
             status = params[1]
-            return Callback.SET_STATUS.call(acc_id, (status, ))
+            return self.callbacks.call(Callback.SET_STATUS, acc_id, (status, ))
         return ""
 
-    @staticmethod
-    def _handle_account_chat(acc_id, params):
+    def _handle_account_chat(self, acc_id, params):
         """
         Join, part, and list chats and send messages to chats
 
@@ -391,7 +391,7 @@ class Server:
 
         # list active chats
         if params[0] == "list":
-            return Callback.CHAT_LIST.call(acc_id, ())
+            return self.callbacks.call(Callback.CHAT_LIST, acc_id, ())
 
         if len(params) < 2:
             return ""
@@ -399,15 +399,15 @@ class Server:
         chat = params[1]
         # join a chat
         if params[0] == "join":
-            return Callback.CHAT_JOIN.call(acc_id, (chat, ))
+            return self.callbacks.call(Callback.CHAT_JOIN, acc_id, (chat, ))
 
         # leave a chat
         if params[0] == "part":
-            return Callback.CHAT_PART.call(acc_id, (chat, ))
+            return self.callbacks.call(Callback.CHAT_PART, acc_id, (chat, ))
 
         # get users in chat
         if params[0] == "users":
-            return Callback.CHAT_USERS.call(acc_id, (chat, ))
+            return self.callbacks.call(Callback.CHAT_USERS, acc_id, (chat, ))
 
         if len(params) < 3:
             return ""
@@ -415,12 +415,13 @@ class Server:
         # invite a user to a chat
         if params[0] == "invite":
             user = params[2]
-            return Callback.CHAT_INVITE.call(acc_id, (chat, user))
+            return self.callbacks.call(Callback.CHAT_INVITE, acc_id,
+                                       (chat, user))
 
         # send a message to a chat
         if params[0] == "send":
             msg = " ".join(params[2:])
-            return Callback.CHAT_SEND.call(acc_id, (chat, msg))
+            return self.callbacks.call(Callback.CHAT_SEND, acc_id, (chat, msg))
 
         return ""
 
@@ -496,9 +497,9 @@ class Server:
             # call disconnect or quit callback in every account
             for acc in self.account_list.get().values():
                 if parts[0] == "bye":
-                    Callback.DISCONNECT.call(acc.aid, ())
+                    self.callbacks.call(Callback.DISCONNECT, acc.aid, ())
                 if parts[0] == "quit":
-                    Callback.QUIT.call(acc.aid, ())
+                    self.callbacks.call(Callback.QUIT, acc.aid, ())
             return (parts[0], "Goodbye.")
 
         # handle "help" command
