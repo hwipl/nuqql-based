@@ -32,7 +32,7 @@ def start(name, callback_list):
     loggers = Loggers(config)
 
     # load accounts
-    account_list = AccountList(conf, loggers, callbacks)
+    account_list = AccountList(config, loggers, callbacks)
     accounts = account_list.load()
 
     # call add account callback for each account
