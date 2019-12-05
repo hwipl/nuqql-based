@@ -9,6 +9,8 @@ import pathlib
 import stat
 import os
 
+from typing import Dict
+
 
 class Config:
     """
@@ -24,12 +26,12 @@ class Config:
     }
     _DEFAULT_LOGLEVEL = "warn"
 
-    def __init__(self, backend_name="based"):
+    def __init__(self, backend_name: str = "based"):
         self.config = {}
         self._init(backend_name)
 
     @staticmethod
-    def get_from_args():
+    def get_from_args() -> Dict[str, str]:
         """
         Parse the command line and return command line arguments:
             af:         address family
@@ -60,7 +62,7 @@ class Config:
         args = parser.parse_args()
         return vars(args)
 
-    def read_from_file(self):
+    def read_from_file(self) -> None:
         """
         Read configuration file into config
         """
@@ -111,7 +113,7 @@ class Config:
             error_msg = "Error parsing config file: wrong loglevel"
             print(error_msg)
 
-    def _init(self, backend_name):
+    def _init(self, backend_name: str):
         """
         Initialize backend configuration from config file and
         command line parameters
@@ -147,7 +149,7 @@ class Config:
 
         return self.config
 
-    def get(self, entry=None):
+    def get(self, entry: str = None):
         """
         Helper for getting the config or a single entry from the config
         """
