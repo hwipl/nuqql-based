@@ -6,6 +6,10 @@ import html
 
 from enum import Enum
 
+if False:   # imports for typing
+    from nuqql_based.account import Account
+    from nuqql_based.buddy import Buddy
+
 
 class Message(str, Enum):
     """
@@ -67,91 +71,96 @@ quit
 help
     show this help""" + EOM
 
-    def __str__(self):
+    def __str__(self) -> str:
         return str(self.value)
 
     @staticmethod
-    def info(info_text):
+    def info(info_text: str) -> str:
         """
         Helper for formatting an "info" message
         """
 
-        return Message.INFO.format(info_text)
+        return str(Message.INFO).format(info_text)
 
     @staticmethod
-    def error(error_text):
+    def error(error_text: str) -> str:
         """
         Helper for formatting an "error" message
         """
 
-        return Message.ERROR.format(error_text)
+        return str(Message.ERROR).format(error_text)
 
     @staticmethod
-    def account(acc):
+    def account(acc: Account) -> str:
         """
         Helper for formatting an "account" message
         """
 
-        return Message.ACCOUNT.format(acc.aid, acc.name, acc.type, acc.user,
-                                      acc.status)
+        return str(Message.ACCOUNT).format(acc.aid, acc.name, acc.type,
+                                           acc.user, acc.status)
 
     @staticmethod
-    def buddy(account, buddy):
+    def buddy(account: Account, buddy: Buddy) -> str:
         """
         Helper for formatting a "buddy" message
         """
-        return Message.BUDDY.format(account.aid, buddy.status, buddy.name,
-                                    buddy.alias)
+        return str(Message.BUDDY).format(account.aid, buddy.status, buddy.name,
+                                         buddy.alias)
 
     @staticmethod
-    def status(account, status):
+    def status(account: Account, status: str) -> str:
         """
         Helper for formatting a "status" message
         """
 
-        return Message.STATUS.format(account.aid, status)
+        return str(Message.STATUS).format(account.aid, status)
 
     @staticmethod
-    def message(account, tstamp, sender, destination, msg):
+    def message(account: Account, tstamp: str, sender: str, destination: str,
+                msg: str) -> str:
         """
         Helper for formatting "message" messages
         """
 
         msg_body = html.escape(msg)
         msg_body = "<br/>".join(msg_body.split("\n"))
-        return Message.MESSAGE.format(account.aid, destination, tstamp, sender,
-                                      msg_body)
+        return str(Message.MESSAGE).format(account.aid, destination, tstamp,
+                                           sender, msg_body)
 
     @staticmethod
-    def chat_user(account, chat, sender_id, sender_name, status):
+    def chat_user(account: Account, chat: str, sender_id: str,
+                  sender_name: str, status: str) -> str:
         """
         Helper for formatting a "chat user" message
         """
 
-        return Message.CHAT_USER.format(account.aid, chat, sender_id,
-                                        sender_name, status)
+        return str(Message.CHAT_USER).format(account.aid, chat, sender_id,
+                                             sender_name, status)
 
     @staticmethod
-    def chat_list(account, chat_id, chat_name, user):
+    def chat_list(account: Account, chat_id: str, chat_name: str,
+                  user: str) -> str:
         """
         Helper for formatting a "chat list" message
         """
 
-        return Message.CHAT_LIST.format(account.aid, chat_id, chat_name, user)
+        return str(Message.CHAT_LIST).format(account.aid, chat_id, chat_name,
+                                             user)
 
     @staticmethod
-    def chat_msg(account, tstamp, sender, destination, msg):
+    def chat_msg(account: Account, tstamp: str, sender: str, destination: str,
+                 msg: str) -> str:
         """
         Helper for formatting "chat msg" messages
         """
 
         msg_body = html.escape(msg)
         msg_body = "<br/>".join(msg_body.split("\n"))
-        return Message.CHAT_MSG.format(account.aid, destination, tstamp,
-                                       sender, msg_body)
+        return str(Message.CHAT_MSG).format(account.aid, destination, tstamp,
+                                            sender, msg_body)
 
     @staticmethod
-    def is_message(msg):
+    def is_message(msg: str) -> bool:
         """
         Helper for detecting if message (string) is a "message" or
         "chat message" message.
