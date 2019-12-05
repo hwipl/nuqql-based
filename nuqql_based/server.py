@@ -12,8 +12,16 @@ try:
 except ImportError:
     daemon = None
 
+from typing import List, Tuple
+
 from nuqql_based.callback import Callback
 from nuqql_based.message import Message
+
+if False:   # imports for typing
+    from nuqql_based.config import Config
+    from nuqql_based.callback import Callbacks
+    from nuqql_based.logger import Loggers
+    from nuqql_based.account import AccountList
 
 
 class _TCPServer(socketserver.TCPServer):
@@ -130,14 +138,15 @@ class Server:
     Based server class
     """
 
-    def __init__(self, config, loggers, callbacks, account_list):
+    def __init__(self, config: Config, loggers: Loggers, callbacks: Callbacks,
+                 account_list: AccountList) -> None:
         self.server = None
         self.config = config
         self.loggers = loggers
         self.callbacks = callbacks
         self.account_list = account_list
 
-    def _run_inet(self):
+    def _run_inet(self) -> None:
         """
         Run an AF_INET server
         """
@@ -147,7 +156,7 @@ class Server:
             self.server = server
             server.serve_forever()
 
-    def _run_unix(self):
+    def _run_unix(self) -> None:
         """
         Run an AF_UNIX server
         """
@@ -166,7 +175,7 @@ class Server:
             self.server = server
             server.serve_forever()
 
-    def run(self):
+    def run(self) -> None:
         """
         Run the server; can be AF_INET or AF_UNIX.
         """
@@ -191,7 +200,7 @@ class Server:
             elif self.config.get("af") == "unix":
                 self._run_unix()
 
-    def _handle_account_list(self):
+    def _handle_account_list(self) -> str:
         """
         List all accounts
         """
@@ -210,7 +219,7 @@ class Server:
         # return a single string
         return "".join(replies)
 
-    def _handle_account_add(self, params):
+    def _handle_account_add(self, params: List[str]) -> str:
         """
         Add a new account.
 
@@ -235,7 +244,7 @@ class Server:
         # inform caller about result
         return Message.info(result)
 
-    def _handle_account_delete(self, acc_id):
+    def _handle_account_delete(self, acc_id: int) -> str:
         """
         Delete an existing account
 
@@ -249,7 +258,7 @@ class Server:
         # inform caller about result
         return Message.info(result)
 
-    def _handle_account_buddies(self, acc_id, params):
+    def _handle_account_buddies(self, acc_id: int, params: List[str]) -> str:
         """
         Get buddies for a specific account. If params contains "online", filter
         online buddies.
@@ -292,7 +301,7 @@ class Server:
         # return replies as single string
         return "".join(replies)
 
-    def _handle_account_collect(self, acc_id, params):
+    def _handle_account_collect(self, acc_id: int, params: List[str]) -> str:
         """
         Collect messages for a specific account.
 
@@ -322,7 +331,7 @@ class Server:
         # return history as single string
         return "".join(history)
 
-    def _handle_account_send(self, acc_id, params):
+    def _handle_account_send(self, acc_id: int, params: List[str]) -> str:
         """
         Send a message to a someone over a specific account.
 
@@ -341,7 +350,7 @@ class Server:
 
         return ""
 
-    def _handle_account_status(self, acc_id, params):
+    def _handle_account_status(self, acc_id: int, params: List[str]) -> str:
         """
         Get or set current status of account
 
@@ -373,7 +382,7 @@ class Server:
             return self.callbacks.call(Callback.SET_STATUS, acc_id, (status, ))
         return ""
 
-    def _handle_account_chat(self, acc_id, params):
+    def _handle_account_chat(self, acc_id: int, params: List[str]) -> str:
         """
         Join, part, and list chats and send messages to chats
 
@@ -425,7 +434,7 @@ class Server:
 
         return ""
 
-    def _handle_account(self, parts):
+    def _handle_account(self, parts: List[str]) -> str:
         """
         Handle account specific commands received from client
         """
@@ -480,7 +489,7 @@ class Server:
 
         return Message.error("unknown command")
 
-    def handle_msg(self, msg):
+    def handle_msg(self, msg: str) -> Tuple[str, str]:
         """
         Handle messages received from client
         """
