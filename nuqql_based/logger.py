@@ -6,19 +6,23 @@ import logging
 import stat
 import os
 
+from typing import Dict, Union
+if False:   # imports for typing
+    from nuqql_based.config import Config
+
 
 class Loggers:
     """
     Loggers class
     """
 
-    def __init__(self, config):
+    def __init__(self, config: Config) -> None:
         self.config = config
         # TODO: add locking?
-        self.loggers = {}
+        self.loggers: Dict[Union[int, str], logging.Logger] = {}
         self._init_main()
 
-    def _init(self, name, file_name):
+    def _init(self, name: str, file_name: str) -> logging.Logger:
         """
         Create a logger with <name>, that logs to <file_name>
         """
@@ -48,7 +52,7 @@ class Loggers:
         # return logger to caller
         return logger
 
-    def _init_main(self):
+    def _init_main(self) -> None:
         """
         Initialize logger for main log
         """
@@ -63,7 +67,7 @@ class Loggers:
         self.loggers["main"] = self._init("main", main_log)
         os.chmod(main_log, stat.S_IRUSR | stat.S_IWUSR)
 
-    def add_account(self, acc_id):
+    def add_account(self, acc_id: int) -> logging.Logger:
         """
         Add an account specific logger
         """
@@ -82,7 +86,7 @@ class Loggers:
 
         return logger
 
-    def get(self, name):
+    def get(self, name: str) -> logging.Logger:
         """
         Helper for getting the logger with the name <name>
         """
