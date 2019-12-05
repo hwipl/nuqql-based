@@ -6,11 +6,17 @@ Basic nuqql backend
 
 import sys
 
+from typing import Callable, Tuple, List
+
 from nuqql_based.account import AccountList
 from nuqql_based.callback import Callbacks, Callback
 from nuqql_based.logger import Loggers
 from nuqql_based.config import Config
 from nuqql_based.server import Server
+
+CallbackFunc = Callable[[int, Callback, Tuple], str]
+CallbackTuple = Tuple[Callback, CallbackFunc]
+CallbackList = List[CallbackTuple]
 
 
 class Based:
@@ -18,7 +24,7 @@ class Based:
     Based class
     """
 
-    def __init__(self, name, callbacks):
+    def __init__(self, name: str, callbacks: CallbackList) -> None:
         # register all callbacks
         self.callbacks = Callbacks()
         for cback, func in callbacks:
@@ -39,7 +45,7 @@ class Based:
         self.server = Server(self.config, self.loggers, self.callbacks,
                              self.accounts)
 
-    def start(self):
+    def start(self) -> None:
         """
         Start based
         """
@@ -54,7 +60,7 @@ class Based:
             sys.exit()
 
 
-def main():
+def main() -> None:
     """
     Main function
     """
