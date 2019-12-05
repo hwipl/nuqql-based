@@ -2,6 +2,7 @@
 Nuqql-based callbacks
 """
 
+from typing import Callable, Dict, Tuple
 from enum import Enum
 
 
@@ -34,21 +35,24 @@ class Callback(Enum):
     CHAT_INVITE = "CHAT_INVITE"
 
 
+CallbackFunc = Callable[[int, Callback, Tuple], str]
+
+
 class Callbacks:
     """
     Callbacks class
     """
 
-    def __init__(self):
-        self.callbacks = {}
+    def __init__(self) -> None:
+        self.callbacks: Dict[Callback, CallbackFunc] = {}
 
-    def add(self, name, func):
+    def add(self, name: Callback, func: CallbackFunc) -> None:
         """
         Register a callback
         """
         self.callbacks[name] = func
 
-    def delete(self, name):
+    def delete(self, name: Callback) -> None:
         """
         Unregister a callback
         """
@@ -56,7 +60,7 @@ class Callbacks:
         if name in self.callbacks:
             del self.callbacks[name]
 
-    def call(self, name, account_id, params):
+    def call(self, name: Callback, account_id: int, params: Tuple) -> str:
         """
         Call callback if it is registered
         """
