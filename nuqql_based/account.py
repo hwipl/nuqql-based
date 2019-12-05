@@ -7,10 +7,17 @@ import stat
 import os
 
 from threading import Lock
+from typing import List, Tuple, Dict, Optional
 
 from nuqql_based.callback import Callback
 from nuqql_based.message import Message
 from nuqql_based.buddy import Buddy
+
+if False:   # imports for typing
+    from logging import Logger
+    from nuqql_based.callback import Callbacks
+    from nuqql_based.logger import Loggers
+    from nuqql_based.config import Config
 
 
 class Account:
@@ -18,39 +25,43 @@ class Account:
     Storage for account specific information
     """
 
-    def __init__(self, aid=0, name="", atype="dummy", user="dummy@dummy.com",
-                 password="dummy_password", status="online"):
+    def __init__(self, aid: int = 0, name: str = "", atype: str = "dummy",
+                 user: str = "dummy@dummy.com",
+                 password: str = "dummy_password",
+                 status: str = "online") -> None:
         self.aid = aid
         self.name = name
         self.type = atype
         self.user = user
         self.password = password
         self.status = status
-        self._buddies = []
+        self._buddies: List[Buddy] = []
         self._buddies_lock = Lock()
-        self._messages = []
+        self._messages: List[str] = []
         self._messages_lock = Lock()
-        self._history = []
+        self._history: List[str] = []
         self._history_lock = Lock()
-        self.logger = None
-        self.callbacks = None
+        self.logger: Optional[Logger] = None
+        self.callbacks: Optional[Callbacks] = None
 
-    def send_msg(self, user, msg):
+    def send_msg(self, user: str, msg: str) -> None:
         """
         Send message to user.
         """
 
         # try to send message
-        self.callbacks.call(Callback.SEND_MESSAGE, self.aid, (user, msg))
+        if self.callbacks:
+            self.callbacks.call(Callback.SEND_MESSAGE, self.aid, (user, msg))
 
         # log message
         log_msg = "message: to {0}: {1}".format(user, msg)
-        self.logger.info(log_msg)
+        if self.logger:
+            self.logger.info(log_msg)
 
         # add unknown buddies on send
         self.add_buddy(user, "", "")
 
-    def receive_msg(self, msg):
+    def receive_msg(self, msg: str) -> None:
         """
         Receive a message from other users or the backend
         """
@@ -66,7 +77,7 @@ class Account:
             self._history.append(msg)
             self._history_lock.release()
 
-    def get_messages(self):
+    def get_messages(self) -> List[str]:
         """
         Get received messages as list
         """
@@ -78,7 +89,7 @@ class Account:
 
         return messages
 
-    def get_history(self):
+    def get_history(self) -> List[str]:
         """
         Get the message history
         """
@@ -90,7 +101,7 @@ class Account:
 
         return history
 
-    def get_buddies(self):
+    def get_buddies(self) -> List[Buddy]:
         """
         Get the buddy list
         """
@@ -101,10 +112,10 @@ class Account:
 
         return buddies
 
-    def _flush_buddies(self):
+    def _flush_buddies(self) -> None:
         self._buddies = []
 
-    def flush_buddies(self):
+    def flush_buddies(self) -> None:
         """
         Flush buddy list
         """
@@ -113,7 +124,7 @@ class Account:
         self._flush_buddies()
         self._buddies_lock.release()
 
-    def _add_buddy(self, name, alias, status):
+    def _add_buddy(self, name: str, alias: str, status: str) -> bool:
         for buddy in self._buddies:
             if buddy.name == name:
                 return False
@@ -122,7 +133,7 @@ class Account:
         self._buddies.append(buddy)
         return True
 
-    def add_buddy(self, name, alias, status):
+    def add_buddy(self, name: str, alias: str, status: str) -> None:
         """
         Add a buddy to the buddy list
         """
@@ -133,7 +144,7 @@ class Account:
         if was_new:
             self.log("account {0}: new buddy: {1}".format(self.aid, name))
 
-    def update_buddies(self, buddy_list):
+    def update_buddies(self, buddy_list: List[Tuple[str, str, str]]) -> None:
         """
         Update buddy list with buddy_list (list of name, alias, status tuples)
         """
@@ -144,7 +155,7 @@ class Account:
             self._add_buddy(name, alias, status)
         self._buddies_lock.release()
 
-    def log(self, text):
+    def log(self, text: str) -> None:
         """
         Log text to account's logger if present
         """
@@ -158,14 +169,15 @@ class AccountList:
     List of all accounts
     """
 
-    def __init__(self, config, loggers, callbacks):
+    def __init__(self, config: Config, loggers: Loggers,
+                 callbacks: Callbacks) -> None:
         self.config = config
         self.loggers = loggers
         self.callbacks = callbacks
         # TODO: add locking?
-        self.accounts = {}
+        self.accounts: Dict[int, Account] = {}
 
-    def store(self):
+    def store(self) -> None:
         """
         Store accounts in a file.
         """
@@ -173,7 +185,7 @@ class AccountList:
         # set accounts file and init configparser
         accounts_file = self.config.get("dir") / "accounts.ini"
         accconf = configparser.ConfigParser()
-        accconf.optionxform = lambda option: option
+        accconf.optionxform = lambda option: option     # type: ignore
 
         # construct accounts config that will be written to the accounts file
         for acc in self.accounts.values():
@@ -197,7 +209,7 @@ class AccountList:
             log = self.loggers.get("main")
             log.error(error_msg)
 
-    def load(self):
+    def load(self) -> Dict[int, Account]:
         """
         Load accounts from a file.
         """
@@ -239,14 +251,14 @@ class AccountList:
 
         return self.accounts
 
-    def get(self):
+    def get(self) -> Dict[int, Account]:
         """
         Helper for getting the accounts
         """
 
         return self.accounts
 
-    def _get_free_account_id(self):
+    def _get_free_account_id(self) -> int:
         """
         Get next free account id
         """
@@ -263,7 +275,8 @@ class AccountList:
 
         return last_acc_id + 1
 
-    def add(self, acc_type, acc_user, acc_pass, acc_id=None):
+    def add(self, acc_type: str, acc_user: str, acc_pass: str,
+            acc_id: int = None) -> str:
         """
         Add a new account
         """
@@ -300,7 +313,7 @@ class AccountList:
 
         return "new account added."
 
-    def delete(self, acc_id):
+    def delete(self, acc_id: int) -> str:
         """
         Delete an account
         """
