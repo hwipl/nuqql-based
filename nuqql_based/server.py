@@ -12,7 +12,7 @@ try:
 except ImportError:
     daemon = None
 
-from typing import List, Tuple
+from typing import List, Tuple, Optional
 
 from nuqql_based.callback import Callback
 from nuqql_based.message import Message
@@ -140,7 +140,7 @@ class Server:
 
     def __init__(self, config: Config, loggers: Loggers, callbacks: Callbacks,
                  account_list: AccountList) -> None:
-        self.server = None
+        self.server: Optional[socketserver.BaseServer] = None
         self.config = config
         self.loggers = loggers
         self.callbacks = callbacks
@@ -295,7 +295,7 @@ class Server:
 
         # log event
         log_msg = "account {0} buddies: {1}".format(acc_id, replies)
-        log = self.loggers.get(acc_id)
+        log = self.loggers.get(str(acc_id))
         log.info(log_msg)
 
         # return replies as single string
@@ -314,11 +314,11 @@ class Server:
         # collect all messages since <time>?
         time = 0   # TODO: change it to time of last collect?
         if len(params) >= 1:
-            time = params[0]
+            time = int(params[0])
 
         # log event
         log_msg = "account {0} collect {1}".format(acc_id, time)
-        log = self.loggers.get(acc_id)
+        log = self.loggers.get(str(acc_id))
         log.info(log_msg)
 
         # collect messages
@@ -371,7 +371,9 @@ class Server:
         if params[0] == "get":
             status = self.callbacks.call(Callback.GET_STATUS, acc_id, ())
             if status:
-                return Message.status(acc_id, status)
+                accounts = self.account_list.get()
+                acc = accounts[acc_id]
+                return Message.status(acc, status)
 
         # set current status
         if params[0] == "set":
