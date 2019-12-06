@@ -8,7 +8,7 @@ import logging
 import stat
 import os
 
-from typing import TYPE_CHECKING, Dict, Union
+from typing import TYPE_CHECKING, Dict
 if TYPE_CHECKING:   # imports for typing
     from nuqql_based.config import Config
 
@@ -21,7 +21,7 @@ class Loggers:
     def __init__(self, config: Config) -> None:
         self.config = config
         # TODO: add locking?
-        self.loggers: Dict[Union[int, str], logging.Logger] = {}
+        self.loggers: Dict[str, logging.Logger] = {}
         self._init_main()
 
     def _init(self, name: str, file_name: str) -> logging.Logger:
@@ -83,7 +83,7 @@ class Loggers:
         # logger name must be string
         logger = self._init(str(acc_id), account_log)
         # TODO: do we still need LOGGERS[acc_id]?
-        self.loggers[acc_id] = logger
+        self.loggers[str(acc_id)] = logger
         os.chmod(account_log, stat.S_IRUSR | stat.S_IWUSR)
 
         return logger
