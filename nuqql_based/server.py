@@ -2,6 +2,8 @@
 nuqql-based socket server
 """
 
+from __future__ import annotations
+
 import socketserver
 import select
 import stat
@@ -12,12 +14,12 @@ try:
 except ImportError:
     daemon = None
 
-from typing import List, Tuple, Optional
+from typing import TYPE_CHECKING, List, Tuple, Optional
 
 from nuqql_based.callback import Callback
 from nuqql_based.message import Message
 
-if False:   # imports for typing
+if TYPE_CHECKING:   # imports for typing
     from nuqql_based.config import Config
     from nuqql_based.callback import Callbacks
     from nuqql_based.logger import Loggers

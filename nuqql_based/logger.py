@@ -2,12 +2,14 @@
 Nuqql-based logging
 """
 
+from __future__ import annotations
+
 import logging
 import stat
 import os
 
-from typing import Dict, Union
-if False:   # imports for typing
+from typing import TYPE_CHECKING, Dict, Union
+if TYPE_CHECKING:   # imports for typing
     from nuqql_based.config import Config
 
 

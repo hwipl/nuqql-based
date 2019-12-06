@@ -2,11 +2,13 @@
 Nuqql message formats
 """
 
-import html
+from __future__ import annotations
 
+import html
 from enum import Enum
 
-if False:   # imports for typing
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:   # imports for typing
     from nuqql_based.account import Account
     from nuqql_based.buddy import Buddy
 

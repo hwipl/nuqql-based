@@ -2,18 +2,20 @@
 Nuqql-based accounts
 """
 
+from __future__ import annotations
+
 import configparser
 import stat
 import os
 
 from threading import Lock
-from typing import List, Tuple, Dict, Optional
+from typing import TYPE_CHECKING, List, Tuple, Dict, Optional
 
 from nuqql_based.callback import Callback
 from nuqql_based.message import Message
 from nuqql_based.buddy import Buddy
 
-if False:   # imports for typing
+if TYPE_CHECKING:   # imports for typing
     from logging import Logger
     from nuqql_based.callback import Callbacks
     from nuqql_based.logger import Loggers
