@@ -25,10 +25,12 @@ setup(
     author="hwipl",
     author_email="nuqql-based@hwipl.net",
     url="https://github.com/hwipl/nuqql-based",
+    package_data={"nuqql_based": ["py.typed"]},
     packages=["nuqql_based"],
     entry_points={
         "console_scripts": ["nuqql-based = nuqql_based.based:main"]
     },
     classifiers=CLASSIFIERS,
-    python_requires='>=3.6',
+    python_requires='>=3.7',
+    zip_safe=False,
 )
