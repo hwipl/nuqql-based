@@ -9,7 +9,7 @@ import pathlib
 import stat
 import os
 
-from typing import Dict, TypedDict, Literal
+from typing import TypedDict, Literal
 
 
 class ConfigDict(TypedDict):
@@ -59,8 +59,7 @@ class Config:
         # init from args and config file
         self._init()
 
-    @staticmethod
-    def get_from_args() -> Dict[str, str]:
+    def get_from_args(self) -> None:
         """
         Parse the command line and return command line arguments:
             af:         address family
@@ -72,8 +71,7 @@ class Config:
         """
 
         # init command line argument parser
-        parser = argparse.ArgumentParser(description="Run nuqql backend.",
-                                         argument_default=argparse.SUPPRESS)
+        parser = argparse.ArgumentParser(description="Run nuqql backend.")
         parser.add_argument("--af", choices=["inet", "unix"],
                             help="socket address family: \"inet\" for AF_INET, \
                             \"unix\" for AF_UNIX")
@@ -87,9 +85,24 @@ class Config:
                                                    "error"],
                             help="Logging level")
 
-        # parse command line arguments and return result as dict
+        # parse command line arguments
         args = parser.parse_args()
-        return vars(args)
+
+        # store args in config dictionary
+        if args.af is not None:
+            self.config["af"] = args.af
+        if args.address is not None:
+            self.config["address"] = args.address
+        if args.port is not None:
+            self.config["port"] = args.port
+        if args.sockfile is not None:
+            self.config["sockfile"] = pathlib.Path(args.sockfile)
+        if args.dir is not None:
+            self.config["dir"] = pathlib.Path(args.dir)
+        if args.daemonize is not None:
+            self.config["daemonize"] = args.daemonize
+        if args.loglevel is not None:
+            self.config["loglevel"] = self._LOGLEVEL_MAP[args.loglevel]
 
     def read_from_file(self) -> None:
         """
@@ -151,19 +164,13 @@ class Config:
         """
 
         # read command line arguments
-        args = self.get_from_args()
+        self.get_from_args()
 
         # read config file and load it into config
-        if "dir" in args:
-            self.config["dir"] = pathlib.Path(args["dir"])
         self.read_from_file()
 
         # overwrite config with command line arguments
-        for key, value in args.items():
-            if key in ("dir", "sockfile"):
-                self.config[key] = pathlib.Path(value)
-            else:
-                self.config[key] = value
+        self.get_from_args()
 
         return self.config
 
