@@ -32,7 +32,7 @@ class Based:
 
         # load config
         self.config = Config(name)
-        self.callbacks.call(Callback.BASED_CONFIG, -1, (self.config.get(), ))
+        self.callbacks.call(Callback.BASED_CONFIG, -1, (self.config, ))
 
         # init loggers
         self.loggers = Loggers(self.config)

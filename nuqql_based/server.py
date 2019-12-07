@@ -153,7 +153,7 @@ class Server:
         Run an AF_INET server
         """
 
-        listen = (self.config.get("address"), self.config.get("port"))
+        listen = (self.config.get_address(), self.config.get_port())
         with _TCPServer(listen, _Handler, self) as server:
             self.server = server
             server.serve_forever()
@@ -164,8 +164,8 @@ class Server:
         """
 
         # make sure paths exist
-        self.config.get("dir").mkdir(parents=True, exist_ok=True)
-        sockfile = str(self.config.get("dir") / self.config.get("sockfile"))
+        self.config.get_dir().mkdir(parents=True, exist_ok=True)
+        sockfile = str(self.config.get_dir() / self.config.get_sockfile())
         try:
             # unlink sockfile of previous execution of the server
             os.unlink(sockfile)
@@ -182,7 +182,7 @@ class Server:
         Run the server; can be AF_INET or AF_UNIX.
         """
 
-        if self.config.get("daemonize"):
+        if self.config.get_daemonize():
             # exit if we cannot load the daemon module
             if not daemon:
                 print("Could not load python module \"daemon\", "
@@ -191,15 +191,15 @@ class Server:
 
             # daemonize the server
             with daemon.DaemonContext():
-                if self.config.get("af") == "inet":
+                if self.config.get_af() == "inet":
                     self._run_inet()
-                elif self.config.get("af") == "unix":
+                elif self.config.get_af() == "unix":
                     self._run_unix()
         else:
             # run in foreground
-            if self.config.get("af") == "inet":
+            if self.config.get_af() == "inet":
                 self._run_inet()
-            elif self.config.get("af") == "unix":
+            elif self.config.get_af() == "unix":
                 self._run_unix()
 
     def _handle_account_list(self) -> str:

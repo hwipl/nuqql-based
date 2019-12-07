@@ -10,6 +10,7 @@ import os
 
 from typing import TYPE_CHECKING, Dict
 if TYPE_CHECKING:   # imports for typing
+    import pathlib
     from nuqql_based.config import Config
 
 
@@ -24,13 +25,13 @@ class Loggers:
         self.loggers: Dict[str, logging.Logger] = {}
         self._init_main()
 
-    def _init(self, name: str, file_name: str) -> logging.Logger:
+    def _init(self, name: str, file_name: pathlib.Path) -> logging.Logger:
         """
         Create a logger with <name>, that logs to <file_name>
         """
 
         # determine logging level from config
-        loglevel = self.config.get("loglevel")
+        loglevel = self.config.get_loglevel()
 
         # create logger
         logger = logging.getLogger(name)
@@ -60,7 +61,7 @@ class Loggers:
         """
 
         # make sure logs directory exists
-        logs_dir = self.config.get("dir") / "logs"
+        logs_dir = self.config.get_dir() / "logs"
         logs_dir.mkdir(parents=True, exist_ok=True)
         os.chmod(logs_dir, stat.S_IRWXU)
 
@@ -76,7 +77,7 @@ class Loggers:
 
         # TODO: merge with init account loggers? remove init account loggers?
         # create new logger
-        account_dir = self.config.get("dir") / "logs" / "account" / f"{acc_id}"
+        account_dir = self.config.get_dir() / "logs" / "account" / f"{acc_id}"
         account_dir.mkdir(parents=True, exist_ok=True)
         os.chmod(account_dir, stat.S_IRWXU)
         account_log = account_dir / "account.log"

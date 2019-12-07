@@ -9,26 +9,6 @@ import pathlib
 import stat
 import os
 
-from typing import TypedDict, Literal
-
-
-class ConfigDict(TypedDict):
-    """
-    Type of config dictionary
-    """
-
-    af: str
-    address: str
-    port: int
-    sockfile: pathlib.Path
-    dir: pathlib.Path
-    daemonize: bool
-    loglevel: int
-
-
-ConfigKey = Literal["af", "address", "port", "sockfile", "dir", "daemonize",
-                    "loglevel"]
-
 
 class Config:
     """
@@ -46,15 +26,13 @@ class Config:
 
     def __init__(self, backend_name: str = "based"):
         # init config and define defaults
-        self.config: ConfigDict = {
-            "af": "inet",
-            "address": "localhost",
-            "port": 32000,
-            "sockfile": pathlib.Path(f"{backend_name}.sock"),
-            "dir": pathlib.Path.home() / f".config/nuqql-{backend_name}",
-            "daemonize": False,
-            "loglevel": self._LOGLEVEL_MAP[self._DEFAULT_LOGLEVEL],
-        }
+        self._af = "inet"
+        self._address = "localhost"
+        self._port = 32000
+        self._sockfile = pathlib.Path(f"{backend_name}.sock")
+        self._dir = pathlib.Path.home() / f".config/nuqql-{backend_name}"
+        self._daemonize = False
+        self._loglevel = self._LOGLEVEL_MAP[self._DEFAULT_LOGLEVEL]
 
         # init from args and config file
         self._init()
@@ -90,19 +68,19 @@ class Config:
 
         # store args in config dictionary
         if args.af is not None:
-            self.config["af"] = args.af
+            self._af = args.af
         if args.address is not None:
-            self.config["address"] = args.address
+            self._address = args.address
         if args.port is not None:
-            self.config["port"] = args.port
+            self._port = args.port
         if args.sockfile is not None:
-            self.config["sockfile"] = pathlib.Path(args.sockfile)
+            self._sockfile = pathlib.Path(args.sockfile)
         if args.dir is not None:
-            self.config["dir"] = pathlib.Path(args.dir)
+            self._dir = pathlib.Path(args.dir)
         if args.daemonize is not None:
-            self.config["daemonize"] = args.daemonize
+            self._daemonize = args.daemonize
         if args.loglevel is not None:
-            self.config["loglevel"] = self._LOGLEVEL_MAP[args.loglevel]
+            self._loglevel = self._LOGLEVEL_MAP[args.loglevel]
 
     def read_from_file(self) -> None:
         """
@@ -110,9 +88,9 @@ class Config:
         """
 
         # make sure path and file exist
-        self.config["dir"].mkdir(parents=True, exist_ok=True)
-        os.chmod(self.config["dir"], stat.S_IRWXU)
-        config_file = self.config["dir"] / "config.ini"
+        self._dir.mkdir(parents=True, exist_ok=True)
+        os.chmod(self._dir, stat.S_IRWXU)
+        config_file = self._dir / "config.ini"
         if not config_file.exists():
             return
 
@@ -131,33 +109,26 @@ class Config:
             # try to read config from config file
             if section == "config":
                 try:
-                    self.config["af"] = config[section].get(
-                        "af", fallback=self.config["af"])
-                    self.config["address"] = config[section].get(
-                        "address", fallback=self.config["address"])
-                    self.config["port"] = config[section].getint(
-                        "port", fallback=self.config["port"])
-                    self.config["sockfile"] = pathlib.Path(config[section].get(
-                        "sockfile", fallback=str(self.config["sockfile"])))
-                    self.config["dir"] = pathlib.Path(config[section].get(
-                        "dir", fallback=str(self.config["dir"])))
-                    self.config["daemonize"] = config[section].getboolean(
-                        "daemonize", fallback=self.config["daemonize"])
-                    self.config["loglevel"] = self._LOGLEVEL_MAP[
+                    self._af = config[section].get("af", fallback=self._af)
+                    self._address = config[section].get(
+                        "address", fallback=self._address)
+                    self._port = config[section].getint(
+                        "port", fallback=self._port)
+                    self._sockfile = pathlib.Path(config[section].get(
+                        "sockfile", fallback=str(self._sockfile)))
+                    self._dir = pathlib.Path(config[section].get(
+                        "dir", fallback=str(self._dir)))
+                    self._daemonize = config[section].getboolean(
+                        "daemonize", fallback=self._daemonize)
+                    self._loglevel = self._LOGLEVEL_MAP.get(
                         config[section].get(
-                            "loglevel", fallback=self._DEFAULT_LOGLEVEL)]
+                            "loglevel", fallback=self._DEFAULT_LOGLEVEL),
+                        self._LOGLEVEL_MAP[self._DEFAULT_LOGLEVEL])
                 except ValueError as error:
                     error_msg = "Error parsing config file: {}".format(error)
                     print(error_msg)
 
-        # make sure log level is correct
-        if self.config["loglevel"] not in self._LOGLEVEL_MAP:
-            self.config["loglevel"] = self._LOGLEVEL_MAP[
-                self._DEFAULT_LOGLEVEL]
-            error_msg = "Error parsing config file: wrong loglevel"
-            print(error_msg)
-
-    def _init(self) -> ConfigDict:
+    def _init(self) -> None:
         """
         Initialize backend configuration from config file and
         command line parameters
@@ -172,14 +143,51 @@ class Config:
         # overwrite config with command line arguments
         self.get_from_args()
 
-        return self.config
-
-    def get(self, entry: ConfigKey = None):
+    def get_af(self) -> str:
         """
-        Helper for getting the config or a single entry from the config
+        Get the af entry from the config
         """
 
-        if entry:
-            return self.config[entry]
+        return self._af
 
-        return self.config
+    def get_address(self) -> str:
+        """
+        Get the address entry from the config
+        """
+
+        return self._address
+
+    def get_port(self) -> int:
+        """
+        Get the port entry from the config
+        """
+
+        return self._port
+
+    def get_sockfile(self) -> pathlib.Path:
+        """
+        Get the sockfile entry from the config
+        """
+
+        return self._sockfile
+
+    def get_dir(self) -> pathlib.Path:
+        """
+        Get the dir entry from the config
+        """
+
+        return self._dir
+
+    def get_daemonize(self) -> bool:
+        """
+        Get the address entry from the config
+        """
+
+        return self._daemonize
+
+    def get_loglevel(self) -> int:
+        """
+        Get the loglevel entry from the config
+        """
+
+        return self._loglevel

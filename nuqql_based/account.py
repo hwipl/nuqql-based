@@ -185,7 +185,7 @@ class AccountList:
         """
 
         # set accounts file and init configparser
-        accounts_file = self.config.get("dir") / "accounts.ini"
+        accounts_file = self.config.get_dir() / "accounts.ini"
         accconf = configparser.ConfigParser()
         accconf.optionxform = lambda option: option     # type: ignore
 
@@ -217,9 +217,9 @@ class AccountList:
         """
 
         # make sure path and file exist
-        self.config.get("dir").mkdir(parents=True, exist_ok=True)
-        os.chmod(self.config.get("dir"), stat.S_IRWXU)
-        accounts_file = self.config.get("dir") / "accounts.ini"
+        self.config.get_dir().mkdir(parents=True, exist_ok=True)
+        os.chmod(self.config.get_dir(), stat.S_IRWXU)
+        accounts_file = self.config.get_dir() / "accounts.ini"
         if not accounts_file.exists():
             return self.accounts
 
