@@ -10,7 +10,7 @@ import stat
 import sys
 import os
 try:
-    import daemon
+    import daemon   # type: ignore
 except ImportError:
     daemon = None
 
