@@ -9,7 +9,7 @@ import stat
 import os
 
 from threading import Lock
-from typing import TYPE_CHECKING, List, Tuple, Dict, Optional
+from typing import TYPE_CHECKING, List, Tuple, Dict
 
 from nuqql_based.callback import Callback
 from nuqql_based.message import Message
@@ -27,7 +27,8 @@ class Account:
     Storage for account specific information
     """
 
-    def __init__(self, aid: int = 0, name: str = "", atype: str = "dummy",
+    def __init__(self, callbacks: Callbacks, logger: Logger, aid: int = 0,
+                 name: str = "", atype: str = "dummy",
                  user: str = "dummy@dummy.com",
                  password: str = "dummy_password",
                  status: str = "online") -> None:
@@ -43,8 +44,8 @@ class Account:
         self._messages_lock = Lock()
         self._history: List[str] = []
         self._history_lock = Lock()
-        self.logger: Optional[Logger] = None
-        self.callbacks: Optional[Callbacks] = None
+        self.logger: Logger = logger
+        self.callbacks: Callbacks = callbacks
 
     def send_msg(self, user: str, msg: str) -> None:
         """
@@ -57,8 +58,7 @@ class Account:
 
         # log message
         log_msg = "message: to {0}: {1}".format(user, msg)
-        if self.logger:
-            self.logger.info(log_msg)
+        self.logger.info(log_msg)
 
         # add unknown buddies on send
         self.add_buddy(user, "", "")
@@ -162,8 +162,7 @@ class Account:
         Log text to account's logger if present
         """
 
-        if self.logger:
-            self.logger.info(text)
+        self.logger.info(text)
 
 
 class AccountList:
@@ -283,25 +282,25 @@ class AccountList:
         Add a new account
         """
 
-        if acc_id is None:
-            acc_id = self._get_free_account_id()
-        new_acc = Account(aid=acc_id, atype=acc_type, user=acc_user,
-                          password=acc_pass)
-        new_acc.callbacks = self.callbacks
-
         # make sure the account does not exist
         for acc in self.accounts.values():
-            if acc.type == new_acc.type and acc.user == new_acc.user:
+            if acc.type == acc_type and acc.user == acc_user:
                 return "account already exists."
 
-        # new account; add it
+        # get a free account id if none is given
+        if acc_id is None:
+            acc_id = self._get_free_account_id()
+
+        # create new logger
+        logger = self.loggers.add_account(acc_id)
+
+        # create account and add it to list
+        new_acc = Account(callbacks=self.callbacks, logger=logger, aid=acc_id,
+                          atype=acc_type, user=acc_user, password=acc_pass)
         self.accounts[new_acc.aid] = new_acc
 
         # store updated accounts in file
         self.store()
-
-        # create new logger
-        new_acc.logger = self.loggers.add_account(acc_id)
 
         # log event
         log_msg = "account new: id {0} type {1} user {2}".format(new_acc.aid,
