@@ -2,8 +2,6 @@
 Nuqql-based accounts
 """
 
-from __future__ import annotations
-
 import configparser
 import stat
 import os
@@ -27,7 +25,7 @@ class Account:
     Storage for account specific information
     """
 
-    def __init__(self, callbacks: Callbacks, logger: Logger, aid: int = 0,
+    def __init__(self, callbacks: "Callbacks", logger: "Logger", aid: int = 0,
                  name: str = "", atype: str = "dummy",
                  user: str = "dummy@dummy.com",
                  password: str = "dummy_password",
@@ -44,8 +42,8 @@ class Account:
         self._messages_lock = Lock()
         self._history: List[str] = []
         self._history_lock = Lock()
-        self.logger: Logger = logger
-        self.callbacks: Callbacks = callbacks
+        self.logger = logger
+        self.callbacks = callbacks
 
     def send_msg(self, user: str, msg: str) -> None:
         """
@@ -170,8 +168,8 @@ class AccountList:
     List of all accounts
     """
 
-    def __init__(self, config: Config, loggers: Loggers,
-                 callbacks: Callbacks) -> None:
+    def __init__(self, config: "Config", loggers: "Loggers",
+                 callbacks: "Callbacks") -> None:
         self.config = config
         self.loggers = loggers
         self.callbacks = callbacks

@@ -2,8 +2,6 @@
 Nuqql-based logging
 """
 
-from __future__ import annotations
-
 import logging
 import stat
 import os
@@ -19,13 +17,13 @@ class Loggers:
     Loggers class
     """
 
-    def __init__(self, config: Config) -> None:
+    def __init__(self, config: "Config") -> None:
         self.config = config
         # TODO: add locking?
         self.loggers: Dict[str, logging.Logger] = {}
         self._init_main()
 
-    def _init(self, name: str, file_name: pathlib.Path) -> logging.Logger:
+    def _init(self, name: str, file_name: "pathlib.Path") -> logging.Logger:
         """
         Create a logger with <name>, that logs to <file_name>
         """

@@ -2,8 +2,6 @@
 Nuqql message formats
 """
 
-from __future__ import annotations
-
 import html
 from enum import Enum
 
@@ -93,7 +91,7 @@ help
         return str(Message.ERROR).format(error_text)
 
     @staticmethod
-    def account(acc: Account) -> str:
+    def account(acc: "Account") -> str:
         """
         Helper for formatting an "account" message
         """
@@ -102,7 +100,7 @@ help
                                            acc.user, acc.status)
 
     @staticmethod
-    def buddy(account: Account, buddy: Buddy) -> str:
+    def buddy(account: "Account", buddy: "Buddy") -> str:
         """
         Helper for formatting a "buddy" message
         """
@@ -110,7 +108,7 @@ help
                                          buddy.alias)
 
     @staticmethod
-    def status(account: Account, status: str) -> str:
+    def status(account: "Account", status: str) -> str:
         """
         Helper for formatting a "status" message
         """
@@ -118,7 +116,7 @@ help
         return str(Message.STATUS).format(account.aid, status)
 
     @staticmethod
-    def message(account: Account, tstamp: str, sender: str, destination: str,
+    def message(account: "Account", tstamp: str, sender: str, destination: str,
                 msg: str) -> str:
         """
         Helper for formatting "message" messages
@@ -130,7 +128,7 @@ help
                                            sender, msg_body)
 
     @staticmethod
-    def chat_user(account: Account, chat: str, sender_id: str,
+    def chat_user(account: "Account", chat: str, sender_id: str,
                   sender_name: str, status: str) -> str:
         """
         Helper for formatting a "chat user" message
@@ -140,7 +138,7 @@ help
                                              sender_name, status)
 
     @staticmethod
-    def chat_list(account: Account, chat_id: str, chat_name: str,
+    def chat_list(account: "Account", chat_id: str, chat_name: str,
                   user: str) -> str:
         """
         Helper for formatting a "chat list" message
@@ -150,8 +148,8 @@ help
                                              user)
 
     @staticmethod
-    def chat_msg(account: Account, tstamp: str, sender: str, destination: str,
-                 msg: str) -> str:
+    def chat_msg(account: "Account", tstamp: str, sender: str,
+                 destination: str, msg: str) -> str:
         """
         Helper for formatting "chat msg" messages
         """

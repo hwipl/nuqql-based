@@ -2,8 +2,6 @@
 nuqql-based socket server
 """
 
-from __future__ import annotations
-
 import socketserver
 import select
 import stat
@@ -140,8 +138,8 @@ class Server:
     Based server class
     """
 
-    def __init__(self, config: Config, loggers: Loggers, callbacks: Callbacks,
-                 account_list: AccountList) -> None:
+    def __init__(self, config: "Config", loggers: "Loggers",
+                 callbacks: "Callbacks", account_list: "AccountList") -> None:
         self.server: Optional[socketserver.BaseServer] = None
         self.config = config
         self.loggers = loggers
