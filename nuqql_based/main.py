@@ -6,13 +6,15 @@ Basic nuqql backend main entry point
 
 from nuqql_based.based import Based
 
+VERSION = "0.1"
+
 
 def main() -> None:
     """
     Main function
     """
 
-    based = Based("based", [])
+    based = Based("based", VERSION, [])
     based.start()
 
 

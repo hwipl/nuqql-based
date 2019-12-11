@@ -24,7 +24,11 @@ class Config:
     }
     _DEFAULT_LOGLEVEL = "warn"
 
-    def __init__(self, backend_name: str = "based"):
+    def __init__(self, backend_name: str, backend_version: str):
+        # backend settings
+        self._backend_name = backend_name
+        self._backend_version = backend_version
+
         # init config and define defaults
         self._af = "inet"
         self._address = "localhost"
@@ -50,6 +54,8 @@ class Config:
 
         # init command line argument parser
         parser = argparse.ArgumentParser(description="Run nuqql backend.")
+        parser.add_argument("--version", action="version",
+                            version=self._backend_version)
         parser.add_argument("--af", choices=["inet", "unix"],
                             help="socket address family: \"inet\" for AF_INET, \
                             \"unix\" for AF_UNIX")

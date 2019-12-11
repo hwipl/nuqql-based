@@ -22,14 +22,15 @@ class Based:
     Based class
     """
 
-    def __init__(self, name: str, callbacks: CallbackList) -> None:
+    def __init__(self, name: str, version: str,
+                 callbacks: CallbackList) -> None:
         # register all callbacks
         self.callbacks = Callbacks()
         for cback, func in callbacks:
             self.callbacks.add(cback, func)
 
         # load config
-        self.config = Config(name)
+        self.config = Config(name, version)
         self.callbacks.call(Callback.BASED_CONFIG, -1, (self.config, ))
 
         # init loggers
