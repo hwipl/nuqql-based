@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 """
 Basic nuqql backend
 """
@@ -58,16 +56,3 @@ class Based:
         finally:
             self.callbacks.call(Callback.BASED_QUIT, -1, ())
             sys.exit()
-
-
-def main() -> None:
-    """
-    Main function
-    """
-
-    based = Based("based", [])
-    based.start()
-
-
-if __name__ == "__main__":
-    main()

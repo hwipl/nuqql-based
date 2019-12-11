@@ -28,7 +28,7 @@ setup(
     package_data={"nuqql_based": ["py.typed"]},
     packages=["nuqql_based"],
     entry_points={
-        "console_scripts": ["nuqql-based = nuqql_based.based:main"]
+        "console_scripts": ["nuqql-based = nuqql_based.main:main"]
     },
     classifiers=CLASSIFIERS,
     python_requires='>=3.6',
