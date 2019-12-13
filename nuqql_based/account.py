@@ -25,7 +25,8 @@ class Account:
     Storage for account specific information
     """
 
-    def __init__(self, callbacks: "Callbacks", logger: "Logger", aid: int = 0,
+    def __init__(self, config: "Config", logger: "Logger",
+                 callbacks: "Callbacks", aid: int = 0,
                  name: str = "", atype: str = "dummy",
                  user: str = "dummy@dummy.com",
                  password: str = "dummy_password",
@@ -42,6 +43,7 @@ class Account:
         self._messages_lock = Lock()
         self._history: List[str] = []
         self._history_lock = Lock()
+        self.config = config
         self.logger = logger
         self.callbacks = callbacks
 
@@ -293,8 +295,9 @@ class AccountList:
         logger = self.loggers.add_account(acc_id)
 
         # create account and add it to list
-        new_acc = Account(callbacks=self.callbacks, logger=logger, aid=acc_id,
-                          atype=acc_type, user=acc_user, password=acc_pass)
+        new_acc = Account(config=self.config, logger=logger,
+                          callbacks=self.callbacks, aid=acc_id, atype=acc_type,
+                          user=acc_user, password=acc_pass)
         self.accounts[new_acc.aid] = new_acc
 
         # store updated accounts in file
