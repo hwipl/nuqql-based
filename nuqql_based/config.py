@@ -68,24 +68,26 @@ class Config:
         parser.add_argument("--loglevel", choices=["debug", "info", "warn",
                                                    "error"],
                             help="Logging level")
+        parser.add_argument("--disable-history", action="store_true",
+                            help="disable message history")
 
         # parse command line arguments
         args = parser.parse_args()
 
         # store args in config dictionary
-        if args.af is not None:
+        if args.af:
             self._af = args.af
-        if args.address is not None:
+        if args.address:
             self._address = args.address
-        if args.port is not None:
+        if args.port:
             self._port = args.port
-        if args.sockfile is not None:
+        if args.sockfile:
             self._sockfile = pathlib.Path(args.sockfile)
-        if args.dir is not None:
+        if args.dir:
             self._dir = pathlib.Path(args.dir)
-        if args.daemonize is not None:
+        if args.daemonize:
             self._daemonize = args.daemonize
-        if args.loglevel is not None:
+        if args.loglevel:
             self._loglevel = self._LOGLEVEL_MAP[args.loglevel]
 
     def read_from_file(self) -> None:
