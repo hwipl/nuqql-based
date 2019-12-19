@@ -37,6 +37,7 @@ class Config:
         self._dir = pathlib.Path.home() / f".config/nuqql-{backend_name}"
         self._daemonize = False
         self._loglevel = self._LOGLEVEL_MAP[self._DEFAULT_LOGLEVEL]
+        self._history = True
 
         # init from args and config file
         self._init()
@@ -89,6 +90,8 @@ class Config:
             self._daemonize = args.daemonize
         if args.loglevel:
             self._loglevel = self._LOGLEVEL_MAP[args.loglevel]
+        if args.disable_history:
+            self._history = False
 
     def read_from_file(self) -> None:
         """
@@ -132,6 +135,8 @@ class Config:
                         config[section].get(
                             "loglevel", fallback=self._DEFAULT_LOGLEVEL),
                         self._LOGLEVEL_MAP[self._DEFAULT_LOGLEVEL])
+                    self._history = config[section].getboolean(
+                        "history", fallback=self._history)
                 except ValueError as error:
                     error_msg = "Error parsing config file: {}".format(error)
                     print(error_msg)
@@ -199,6 +204,13 @@ class Config:
         """
 
         return self._loglevel
+
+    def get_history(self) -> bool:
+        """
+        Get history entry from config: history enabled or disabled
+        """
+
+        return self._history
 
     def get_name(self) -> str:
         """

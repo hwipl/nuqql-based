@@ -72,8 +72,7 @@ class Account:
         self._messages.append(msg)
         self._messages_lock.release()
 
-        if Message.is_message(msg):
-            # TODO: add configuration parameter if history is wanted?
+        if Message.is_message(msg) and self.config.get_history():
             # TODO: add timestamp?
             self._history_lock.acquire()
             self._history.append(msg)
