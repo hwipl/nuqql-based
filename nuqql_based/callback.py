@@ -33,6 +33,7 @@ class Callback(Enum):
     CHAT_USERS = "CHAT_USERS"
     CHAT_SEND = "CHAT_SEND"
     CHAT_INVITE = "CHAT_INVITE"
+    VERSION = "VERSION"
 
 
 CallbackFunc = Callable[[int, Callback, Tuple], str]

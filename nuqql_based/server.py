@@ -496,9 +496,11 @@ class Server:
         Handle the version command received from client
         """
 
-        name = self.config.get_name()
-        version = self.config.get_version()
-        msg = f"version: {name} v{version}"
+        msg = self.callbacks.call(Callback.VERSION, -1, ())
+        if not msg:
+            name = self.config.get_name()
+            version = self.config.get_version()
+            msg = f"version: {name} v{version}"
         return ("msg", Message.info(msg))
 
     def handle_msg(self, msg: str) -> Tuple[str, str]:
