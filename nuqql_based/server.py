@@ -491,6 +491,16 @@ class Server:
 
         return Message.error("unknown command")
 
+    def _handle_version(self) -> str:
+        """
+        Handle the version command received from client
+        """
+
+        name = self.config.get_name()
+        version = self.config.get_version()
+        msg = f"version: {name} v{version}"
+        return ("msg", Message.info(msg))
+
     def handle_msg(self, msg: str) -> Tuple[str, str]:
         """
         Handle messages received from client
@@ -517,7 +527,10 @@ class Server:
         if parts[0] == "help":
             return ("msg", Message.HELP_MSG)
 
+        if parts[0] == "version":
+            return self._handle_version()
+
         # others
-        # TODO: ver? who?
+        # TODO: who?
         # ignore rest for now...
         return ("msg", "")

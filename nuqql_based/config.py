@@ -197,3 +197,17 @@ class Config:
         """
 
         return self._loglevel
+
+    def get_name(self) -> str:
+        """
+        Get the name of the backend
+        """
+
+        return self._backend_name
+
+    def get_version(self) -> str:
+        """
+        Get the version of the backend
+        """
+
+        return self._backend_version
