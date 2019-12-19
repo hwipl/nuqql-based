@@ -491,7 +491,7 @@ class Server:
 
         return Message.error("unknown command")
 
-    def _handle_version(self) -> str:
+    def _handle_version(self) -> Tuple[str, str]:
         """
         Handle the version command received from client
         """
