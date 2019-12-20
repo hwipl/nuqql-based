@@ -21,7 +21,6 @@ class Loggers:
         self.config = config
         # TODO: add locking?
         self.loggers: Dict[str, logging.Logger] = {}
-        self._init_main()
 
     def _init(self, name: str, file_name: "pathlib.Path") -> logging.Logger:
         """
@@ -53,7 +52,7 @@ class Loggers:
         # return logger to caller
         return logger
 
-    def _init_main(self) -> None:
+    def init_main(self) -> None:
         """
         Initialize logger for main log
         """

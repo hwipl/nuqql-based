@@ -22,32 +22,47 @@ class Based:
     Based class
     """
 
-    def __init__(self, name: str, version: str,
-                 callbacks: CallbackList) -> None:
-        # register all callbacks
+    def __init__(self, name: str, version: str) -> None:
+        # callbacks
         self.callbacks = Callbacks()
-        for cback, func in callbacks:
-            self.callbacks.add(cback, func)
 
-        # load config
+        # config
         self.config = Config(name, version)
-        self.callbacks.call(Callback.BASED_CONFIG, -1, (self.config, ))
 
-        # init loggers
+        # loggers
         self.loggers = Loggers(self.config)
 
-        # init account list
+        # account list
         self.accounts = AccountList(self.config, self.loggers, self.callbacks)
-        self.accounts.load()
 
-        # init server
+        # server
         self.server = Server(self.config, self.loggers, self.callbacks,
                              self.accounts)
+
+    def set_callbacks(self, callbacks: CallbackList) -> None:
+        """
+        Set callbacks of the backend to the (callback, function) tuple values
+        in the callbacks list
+        """
+
+        # register all callbacks
+        for cback, func in callbacks:
+            self.callbacks.add(cback, func)
 
     def start(self) -> None:
         """
         Start based
         """
+
+        # load config from command line arguments and config file
+        self.config.init()
+        self.callbacks.call(Callback.BASED_CONFIG, -1, (self.config, ))
+
+        # init main logger
+        self.loggers.init_main()
+
+        # load account list
+        self.accounts.load()
 
         # start server
         try:

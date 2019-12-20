@@ -39,9 +39,6 @@ class Config:
         self._loglevel = self._LOGLEVEL_MAP[self._DEFAULT_LOGLEVEL]
         self._history = True
 
-        # init from args and config file
-        self._init()
-
     def get_from_args(self) -> None:
         """
         Parse the command line and return command line arguments:
@@ -141,7 +138,7 @@ class Config:
                     error_msg = "Error parsing config file: {}".format(error)
                     print(error_msg)
 
-    def _init(self) -> None:
+    def init(self) -> None:
         """
         Initialize backend configuration from config file and
         command line parameters

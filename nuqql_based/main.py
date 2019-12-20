@@ -14,7 +14,7 @@ def main() -> None:
     Main function
     """
 
-    based = Based("based", VERSION, [])
+    based = Based("based", VERSION)
     based.start()
 
 
