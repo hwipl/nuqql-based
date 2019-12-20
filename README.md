@@ -1,9 +1,9 @@
 # nuqql-based
 
-nuqql-based is a dummy network daemon that implements the nuqql interface. It
-can be used as a dummy backend for [nuqql](https://github.com/hwipl/nuqql),
-e.g., for testing or as a basis for the implementation of other nuqql
-backends.
+nuqql-based is a basic network daemon library that implements the nuqql
+interface. It can be used as a dummy backend for
+[nuqql](https://github.com/hwipl/nuqql), e.g., for testing or as a basis for
+the implementation of other nuqql backends.
 
 Other backends using nuqql-based:
 * [nuqql-slixmppd](https://github.com/hwipl/nuqql-slixmppd): a backend for the
