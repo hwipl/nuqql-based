@@ -14,3 +14,9 @@ Other backends using nuqql-based:
 Dependencies:
 * [daemon](https://pypi.org/project/python-daemon/) (optional): for daemonize
   support
+
+
+## Changes
+
+* v0.1:
+  * First release.
