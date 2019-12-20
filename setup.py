@@ -11,7 +11,7 @@ import codecs
 from setuptools import setup
 
 # setup parameters
-DESCRIPTION = "Dummy network daemon for nuqql"
+DESCRIPTION = "Basic network daemon library for nuqql"
 with open("README.md", 'r') as f:
     LONG_DESCRIPTION = f.read()
 CLASSIFIERS = [
