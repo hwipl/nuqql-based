@@ -64,6 +64,8 @@ account <id> chat users <chat>
 account <id> chat invite <chat> <user>
     invite the user <user> to the group chat <chat> on the account with the
     account id <id>.
+version
+    get version of the backend
 bye
     disconnect from backend
 quit
