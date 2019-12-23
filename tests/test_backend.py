@@ -10,6 +10,7 @@ import socket
 import time
 
 from pathlib import Path
+from typing import Any
 
 from nuqql_based.main import VERSION
 from nuqql_based.message import Message
@@ -17,7 +18,7 @@ from nuqql_based.message import Message
 
 class BackendInetTest(unittest.TestCase):
     """
-    Test the backend
+    Test the backend with an AF_INET socket
     """
 
     def setUp(self) -> None:
@@ -26,25 +27,47 @@ class BackendInetTest(unittest.TestCase):
 
         # start backend as subprocess
         path = Path(__file__).resolve().parents[1]
-        backend_cmd = f"{path}/based.py --dir {self.test_dir} --af inet"
+        backend_cmd = self._get_backend_cmd(path)
         self.proc = subprocess.Popen(backend_cmd, shell=True,
                                      stdout=subprocess.DEVNULL,
                                      stderr=subprocess.DEVNULL)
 
         # client connection
         self.buf = ""
-        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.sock = self._get_socket()
         self.sock.settimeout(5)
         self._connect()
+
+    def _get_backend_cmd(self, path: Path) -> str:
+        """
+        Get the backend command
+        """
+
+        return f"{path}/based.py --dir {self.test_dir} --af inet"
+
+    def _get_socket(self) -> socket.socket:     # pylint: disable=no-self-use
+        """
+        Get the client socket
+        """
+
+        return socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+    def _get_server_addr(self) -> Any:          # pylint: disable=no-self-use
+        """
+        Get the server address
+        """
+
+        return ("localhost", 32000)
 
     def _connect(self) -> None:
         """
         Network connection helper, tries to reach server for 5 seconds
         """
+
         tries = 0
         while tries < 50:
             try:
-                self.sock.connect(("localhost", 32000))
+                self.sock.connect(self._get_server_addr())
                 break
             except OSError:
                 tries += 1
@@ -184,6 +207,33 @@ class BackendInetTest(unittest.TestCase):
                          "account: 0 () test test3@other.com [online]")
         self.assertEqual(replies[1],
                          "account: 1 () test test2@test.com [online]")
+
+
+class BackendUnixTest(BackendInetTest):
+    """
+    Test the backend with an AF_UNIX socket
+    """
+
+    def _get_backend_cmd(self, path: Path) -> str:
+        """
+        Get the backend command
+        """
+
+        return f"{path}/based.py --dir {self.test_dir} --af unix"
+
+    def _get_socket(self) -> socket.socket:
+        """
+        Get the client socket
+        """
+
+        return socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+
+    def _get_server_addr(self) -> str:
+        """
+        Get the server address
+        """
+
+        return str(Path(self.test_dir) / "based.sock")
 
 
 if __name__ == '__main__':
