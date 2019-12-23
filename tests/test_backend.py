@@ -145,9 +145,9 @@ class BackendInetTest(unittest.TestCase):
         reply = self.recv_msg()
         self.assertEqual(reply, "")
 
-    def test_account_list(self) -> None:
+    def test_accounts(self) -> None:
         """
-        Test the account list command
+        Test account listing as well as adding and deleting of accounts
         """
 
         # empty account list, except nothing/timeout
@@ -207,6 +207,134 @@ class BackendInetTest(unittest.TestCase):
                          "account: 0 () test test3@other.com [online]")
         self.assertEqual(replies[1],
                          "account: 1 () test test2@test.com [online]")
+
+    def test_buddies(self) -> None:
+        """
+        Test retrieving the buddy list and buddies adding with send
+        """
+
+        # retrieve buddy list with no accounts
+        self.send_cmd("account 0 buddies")
+        reply = self.recv_msg()
+        self.assertEqual(reply, "error: invalid account")
+
+        # add an account
+        self.send_cmd("account add test test@example.com testpw")
+        reply = self.recv_msg()
+        self.assertEqual(reply, "info: new account added.")
+
+        # retrieve buddy list with empty buddy list
+        self.send_cmd("account 0 buddies")
+        with self.assertRaises(socket.timeout):
+            self.sock.settimeout(1)
+            self.recv_msg()
+
+        # add buddy with send and retrieve buddy list
+        self.send_cmd("account 0 send buddy1@example.com test")
+        self.send_cmd("account 0 buddies")
+        reply = self.recv_msg()
+        self.assertEqual(reply,
+                         "buddy: 0 status:  name: buddy1@example.com alias: ")
+
+        # add more buddies and retrieve buddy list again
+        self.send_cmd("account 0 send buddy2@test.com test")
+        self.send_cmd("account 0 send buddy3@other.com test")
+        self.send_cmd("account 0 buddies")
+        replies = []
+        replies.append(self.recv_msg())
+        replies.append(self.recv_msg())
+        replies.append(self.recv_msg())
+        replies.sort()
+        self.assertEqual(replies[0],
+                         "buddy: 0 status:  name: buddy1@example.com alias: ")
+        self.assertEqual(replies[1],
+                         "buddy: 0 status:  name: buddy2@test.com alias: ")
+        self.assertEqual(replies[2],
+                         "buddy: 0 status:  name: buddy3@other.com alias: ")
+
+        # retrieve only online buddies
+        self.send_cmd("account 0 buddies online")
+        with self.assertRaises(socket.timeout):
+            self.sock.settimeout(1)
+            self.recv_msg()
+
+    def test_send(self) -> None:
+        """
+        Test sending messages
+        """
+
+        # try without an account
+        self.send_cmd("account 0 send buddy1@example.com this is a test!")
+        reply = self.recv_msg()
+        self.assertEqual(reply, "error: invalid account")
+
+        # add an account
+        self.send_cmd("account add test test@example.com testpw")
+        reply = self.recv_msg()
+        self.assertEqual(reply, "info: new account added.")
+
+        # try again, there should be no reply
+        self.send_cmd("account 0 send buddy1@example.com this is a test!")
+        with self.assertRaises(socket.timeout):
+            self.sock.settimeout(1)
+            self.recv_msg()
+
+    def test_collect(self) -> None:
+        """
+        Test collecting old messages from history
+        """
+
+        # try without an account
+        self.send_cmd("account 0 collect")
+        reply = self.recv_msg()
+        self.assertEqual(reply, "error: invalid account")
+
+        # add an account
+        self.send_cmd("account add test test@example.com testpw")
+        reply = self.recv_msg()
+        self.assertEqual(reply, "info: new account added.")
+
+        # try again, there should be no reply because history is empty
+        self.send_cmd("account 0 collect")
+        with self.assertRaises(socket.timeout):
+            self.sock.settimeout(1)
+            self.recv_msg()
+
+    def test_status(self) -> None:
+        """
+        Test getting and setting the status
+        """
+
+        # try without an account
+        self.send_cmd("account 0 status get")
+        reply = self.recv_msg()
+        self.assertEqual(reply, "error: invalid account")
+        self.send_cmd("account 0 status set away")
+        reply = self.recv_msg()
+        self.assertEqual(reply, "error: invalid account")
+
+        # add an account
+        self.send_cmd("account add test test@example.com testpw")
+        reply = self.recv_msg()
+        self.assertEqual(reply, "info: new account added.")
+
+        # get status again
+        self.send_cmd("account 0 status get")
+        with self.assertRaises(socket.timeout):
+            self.sock.settimeout(1)
+            self.recv_msg()
+
+        # set status to away
+        self.send_cmd("account 0 status set away")
+        with self.assertRaises(socket.timeout):
+            self.sock.settimeout(1)
+            self.recv_msg()
+
+        # get status again
+        self.send_cmd("account 0 status get")
+        with self.assertRaises(socket.timeout):
+            self.sock.settimeout(1)
+            self.recv_msg()
 
 
 class BackendUnixTest(BackendInetTest):
