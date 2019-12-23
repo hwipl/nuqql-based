@@ -164,12 +164,12 @@ class BackendInetTest(unittest.TestCase):
         reply = self.recv_msg()
         self.assertEqual(reply, "info: account 0 deleted.")
 
-        # retrieve account list again, should ony contain second account
+        # retrieve account list again, should only contain second account
         self.send_cmd("account list")
         reply = self.recv_msg()
         self.assertEqual(reply, "account: 1 () test test2@test.com [online]")
 
-        # add a another account, should get first account id
+        # add another account, should get first account id
         self.send_cmd("account add test test3@other.com test3pw")
         reply = self.recv_msg()
         self.assertEqual(reply, "info: new account added.")
