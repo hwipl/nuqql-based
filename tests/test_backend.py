@@ -94,7 +94,7 @@ class BackendInetTest(unittest.TestCase):
         """
 
         cmd = f"{cmd}\r\n"
-        self.sock.send(cmd.encode())
+        self.sock.sendall(cmd.encode())
 
     def recv_msg(self) -> str:
         """
