@@ -15,6 +15,9 @@ from typing import Any
 from nuqql_based.main import VERSION
 from nuqql_based.message import Message
 
+# default socket timeout
+DEFAULT_TIMEOUT = 10
+
 
 class BackendInetTest(unittest.TestCase):
     """
@@ -35,6 +38,7 @@ class BackendInetTest(unittest.TestCase):
         # client connection
         self.buf = ""
         self.sock = self._get_socket()
+        self.sock.settimeout(DEFAULT_TIMEOUT)
         self._connect()
 
     def _get_backend_cmd(self, path: Path) -> str:
@@ -74,6 +78,7 @@ class BackendInetTest(unittest.TestCase):
 
     def tearDown(self) -> None:
         # close socket
+        self.sock.shutdown(socket.SHUT_RDWR)
         self.sock.close()
 
         # close subprocess
@@ -154,7 +159,7 @@ class BackendInetTest(unittest.TestCase):
         with self.assertRaises(socket.timeout):
             self.sock.settimeout(1)
             self.recv_msg()
-            self.sock.settimeout(None)
+            self.sock.settimeout(DEFAULT_TIMEOUT)
 
         # add new account
         self.send_cmd("account add test test@example.com testpw")
@@ -228,7 +233,7 @@ class BackendInetTest(unittest.TestCase):
         with self.assertRaises(socket.timeout):
             self.sock.settimeout(1)
             self.recv_msg()
-            self.sock.settimeout(None)
+            self.sock.settimeout(DEFAULT_TIMEOUT)
 
         # add buddy with send and retrieve buddy list
         self.send_cmd("account 0 send buddy1@example.com test")
@@ -258,7 +263,7 @@ class BackendInetTest(unittest.TestCase):
         with self.assertRaises(socket.timeout):
             self.sock.settimeout(1)
             self.recv_msg()
-            self.sock.settimeout(None)
+            self.sock.settimeout(DEFAULT_TIMEOUT)
 
     def test_send(self) -> None:
         """
@@ -280,7 +285,7 @@ class BackendInetTest(unittest.TestCase):
         with self.assertRaises(socket.timeout):
             self.sock.settimeout(1)
             self.recv_msg()
-            self.sock.settimeout(None)
+            self.sock.settimeout(DEFAULT_TIMEOUT)
 
     def test_collect(self) -> None:
         """
@@ -302,7 +307,7 @@ class BackendInetTest(unittest.TestCase):
         with self.assertRaises(socket.timeout):
             self.sock.settimeout(1)
             self.recv_msg()
-            self.sock.settimeout(None)
+            self.sock.settimeout(DEFAULT_TIMEOUT)
 
     def test_status(self) -> None:
         """
@@ -327,21 +332,21 @@ class BackendInetTest(unittest.TestCase):
         with self.assertRaises(socket.timeout):
             self.sock.settimeout(1)
             self.recv_msg()
-            self.sock.settimeout(None)
+            self.sock.settimeout(DEFAULT_TIMEOUT)
 
         # set status to away
         self.send_cmd("account 0 status set away")
         with self.assertRaises(socket.timeout):
             self.sock.settimeout(1)
             self.recv_msg()
-            self.sock.settimeout(None)
+            self.sock.settimeout(DEFAULT_TIMEOUT)
 
         # get status again
         self.send_cmd("account 0 status get")
         with self.assertRaises(socket.timeout):
             self.sock.settimeout(1)
             self.recv_msg()
-            self.sock.settimeout(None)
+            self.sock.settimeout(DEFAULT_TIMEOUT)
 
 
 class BackendUnixTest(BackendInetTest):
