@@ -24,7 +24,13 @@ class BackendInetTest(unittest.TestCase):
     Test the backend with an AF_INET socket
     """
 
+    # test run counter
+    test_run = 0
+
     def setUp(self) -> None:
+        # increase test run counter
+        self.__class__.test_run += 1
+
         # create temporary directory
         self.test_dir = tempfile.mkdtemp()
 
@@ -51,7 +57,7 @@ class BackendInetTest(unittest.TestCase):
         Set the backend command
         """
 
-        port = 32000
+        port = 32000 + self.test_run
         self.backend_cmd = f"{self.path}/based.py --dir {self.test_dir} " \
             f"--af inet --port {port}"
 
@@ -67,7 +73,7 @@ class BackendInetTest(unittest.TestCase):
         Set the server address
         """
 
-        self.server_addr = ("localhost", 32000)
+        self.server_addr = ("localhost", 32000 + self.test_run)
 
     def _connect(self) -> None:
         """
