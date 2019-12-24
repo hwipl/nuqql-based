@@ -78,7 +78,6 @@ class BackendInetTest(unittest.TestCase):
 
     def tearDown(self) -> None:
         # close socket
-        self.sock.shutdown(socket.SHUT_RDWR)
         self.sock.close()
 
         # close subprocess
