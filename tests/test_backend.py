@@ -70,11 +70,11 @@ class BackendInetTest(unittest.TestCase):
         tries = 0
         while tries < 50:
             try:
+                time.sleep(1)
                 self.sock.connect(self._get_server_addr())
                 break
             except OSError:
                 tries += 1
-                time.sleep(0.1)
 
     def tearDown(self) -> None:
         # close socket
