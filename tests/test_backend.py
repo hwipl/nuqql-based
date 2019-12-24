@@ -29,40 +29,45 @@ class BackendInetTest(unittest.TestCase):
         self.test_dir = tempfile.mkdtemp()
 
         # start backend as subprocess
-        path = Path(__file__).resolve().parents[1]
-        backend_cmd = self._get_backend_cmd(path)
+        self.path = Path(__file__).resolve().parents[1]
+        self.backend_cmd = ""
+        self._set_backend_cmd()
         self.proc: Optional[subprocess.Popen] = None
-        self.proc = subprocess.Popen(backend_cmd, shell=True,
+        self.proc = subprocess.Popen(self.backend_cmd, shell=True,
                                      stdout=subprocess.DEVNULL,
                                      stderr=subprocess.DEVNULL)
 
         # client connection
         self.buf = ""
         self.sock: Optional[socket.socket] = None
-        self.sock = self._get_socket()
+        self._set_socket()
         self.set_timeout(DEFAULT_TIMEOUT)
+        self.server_addr: Any = None
+        self._set_server_addr()
         self._connect()
 
-    def _get_backend_cmd(self, path: Path) -> str:
+    def _set_backend_cmd(self) -> None:
         """
-        Get the backend command
-        """
-
-        return f"{path}/based.py --dir {self.test_dir} --af inet"
-
-    def _get_socket(self) -> socket.socket:     # pylint: disable=no-self-use
-        """
-        Get the client socket
+        Set the backend command
         """
 
-        return socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        port = 32000
+        self.backend_cmd = f"{self.path}/based.py --dir {self.test_dir} " \
+            f"--af inet --port {port}"
 
-    def _get_server_addr(self) -> Any:          # pylint: disable=no-self-use
+    def _set_socket(self) -> None:
         """
-        Get the server address
+        Set the client socket
         """
 
-        return ("localhost", 32000)
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+    def _set_server_addr(self) -> None:
+        """
+        Set the server address
+        """
+
+        self.server_addr = ("localhost", 32000)
 
     def _connect(self) -> None:
         """
@@ -74,7 +79,7 @@ class BackendInetTest(unittest.TestCase):
         while tries < 50:
             try:
                 time.sleep(1)
-                self.sock.connect(self._get_server_addr())
+                self.sock.connect(self.server_addr)
                 break
             except OSError:
                 tries += 1
@@ -370,26 +375,27 @@ class BackendUnixTest(BackendInetTest):
     Test the backend with an AF_UNIX socket
     """
 
-    def _get_backend_cmd(self, path: Path) -> str:
+    def _set_backend_cmd(self) -> None:
         """
         Get the backend command
         """
 
-        return f"{path}/based.py --dir {self.test_dir} --af unix"
+        self.backend_cmd = f"{self.path}/based.py --dir {self.test_dir} "\
+            f"--af unix"
 
-    def _get_socket(self) -> socket.socket:
+    def _set_socket(self) -> None:
         """
         Get the client socket
         """
 
-        return socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        self.sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
 
-    def _get_server_addr(self) -> str:
+    def _set_server_addr(self) -> None:
         """
         Get the server address
         """
 
-        return str(Path(self.test_dir) / "based.sock")
+        self.server_addr = str(Path(self.test_dir) / "based.sock")
 
 
 if __name__ == '__main__':
