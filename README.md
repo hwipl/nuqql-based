@@ -16,6 +16,24 @@ Dependencies:
   support
 
 
+## Setup
+
+You can install nuqql-based, for example, with pip for your user only with the
+following command:
+
+```console
+$ pip install --user nuqql-based
+```
+
+If you prefer to checkout this repository with git and work with the repository
+directly, you can install nuqql-based for your user in editable mode with the
+following command:
+
+```console
+$ pip install --user -e .
+```
+
+
 ## Changes
 
 * v0.1:
