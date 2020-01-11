@@ -25,9 +25,9 @@ following command:
 $ pip install --user nuqql-based
 ```
 
-If you prefer to checkout this repository with git and work with the repository
-directly, you can install nuqql-based for your user in editable mode with the
-following command:
+If you prefer to check out this repository with git and work with the
+repository directly, you can install nuqql-based for your user in editable mode
+with the following command:
 
 ```console
 $ pip install --user -e .
