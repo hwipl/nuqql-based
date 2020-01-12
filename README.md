@@ -34,6 +34,49 @@ $ pip install --user -e .
 ```
 
 
+## Usage
+
+Creating a nuqql backend with the nuqql-based library consists of the steps in
+the following boilerplate code:
+
+```python
+from nuqql_based.based import Based
+from nuqql_based.callback import Callback
+
+# create a new backend
+BACKEND_NAME = "myBackend"
+BACKEND_VERSION = "0.1"
+based = Based(BACKEND_NAME, BACKEND_VERSION)
+
+# set callbacks
+callbacks = [
+    # based events
+    (Callback.BASED_CONFIG, based_config),
+    (Callback.BASED_INTERRUPT, based_interrupt),
+    (Callback.BASED_QUIT, based_quit),
+
+    # nuqql messages
+    (Callback.QUIT, stop),
+    (Callback.ADD_ACCOUNT, add_account),
+    (Callback.DEL_ACCOUNT, del_account),
+    (Callback.SEND_MESSAGE, send_message),
+    (Callback.SET_STATUS, set_status),
+    (Callback.GET_STATUS, get_status),
+    (Callback.CHAT_LIST, chat_list),
+    (Callback.CHAT_JOIN, chat_join),
+    (Callback.CHAT_PART, chat_part),
+    (Callback.CHAT_SEND, chat_send),
+    (Callback.CHAT_USERS, chat_users),
+    (Callback.CHAT_INVITE, chat_invite),
+]
+based.set_callbacks(callbacks)
+based.start()
+```
+
+You can omit the callbacks you do not need in the callbacks list. In addition
+to the code above, you need to implement the callbacks.
+
+
 ## Changes
 
 * v0.1:
