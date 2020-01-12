@@ -73,8 +73,9 @@ based.set_callbacks(callbacks)
 based.start()
 ```
 
-You can omit the callbacks you do not need in the callbacks list. In addition
-to the code above, you need to implement the callbacks.
+You can omit the callbacks you do not need in the `callbacks` list. In addition
+to the code above, you need to implement the callbacks you specify in your
+`callbacks` list.
 
 
 ## Changes
