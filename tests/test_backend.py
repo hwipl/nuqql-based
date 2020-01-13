@@ -356,24 +356,18 @@ class BackendInetTest(unittest.TestCase):
 
         # get status again
         self.send_cmd("account 0 status get")
-        with self.assertRaises(socket.timeout):
-            self.set_timeout(1)
-            self.recv_msg()
-            self.set_timeout(DEFAULT_TIMEOUT)
+        reply = self.recv_msg()
+        self.assertEqual(reply, "status: account 0 status: online")
 
         # set status to away
         self.send_cmd("account 0 status set away")
-        with self.assertRaises(socket.timeout):
-            self.set_timeout(1)
-            self.recv_msg()
-            self.set_timeout(DEFAULT_TIMEOUT)
+        reply = self.recv_msg()
+        self.assertEqual(reply, "status: account 0 status: away")
 
         # get status again
         self.send_cmd("account 0 status get")
-        with self.assertRaises(socket.timeout):
-            self.set_timeout(1)
-            self.recv_msg()
-            self.set_timeout(DEFAULT_TIMEOUT)
+        reply = self.recv_msg()
+        self.assertEqual(reply, "status: account 0 status: away")
 
 
 class BackendUnixTest(BackendInetTest):
