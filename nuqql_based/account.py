@@ -54,7 +54,7 @@ class Account:
 
         # try to send message
         if self.callbacks:
-            self.callbacks.call(Callback.SEND_MESSAGE, self.aid, (user, msg))
+            self.callbacks.call(Callback.SEND_MESSAGE, self, (user, msg))
 
         # log message
         log_msg = "message: to {0}: {1}".format(user, msg)
@@ -310,7 +310,7 @@ class AccountList:
         log.info(log_msg)
 
         # notify callback (if present) about new account
-        self.callbacks.call(Callback.ADD_ACCOUNT, new_acc.aid, (new_acc, ))
+        self.callbacks.call(Callback.ADD_ACCOUNT, new_acc, ())
 
         return "new account added."
 
@@ -318,6 +318,10 @@ class AccountList:
         """
         Delete an account
         """
+
+        # notify callback (if present) about deleted account
+        acc = self.accounts[acc_id]
+        self.callbacks.call(Callback.DEL_ACCOUNT, acc, ())
 
         # remove account and update accounts file
         del self.accounts[acc_id]
@@ -327,8 +331,5 @@ class AccountList:
         log_msg = "account deleted: id {0}".format(acc_id)
         log = self.loggers.get("main")
         log.info(log_msg)
-
-        # notify callback (if present) about deleted account
-        self.callbacks.call(Callback.DEL_ACCOUNT, acc_id, ())
 
         return "account {} deleted.".format(acc_id)

@@ -4,7 +4,7 @@ Basic nuqql backend
 
 import sys
 
-from typing import Callable, Tuple, List
+from typing import TYPE_CHECKING, Callable, List, Optional, Tuple
 
 from nuqql_based.account import AccountList
 from nuqql_based.callback import Callbacks, Callback
@@ -12,7 +12,10 @@ from nuqql_based.logger import Loggers
 from nuqql_based.config import Config
 from nuqql_based.server import Server
 
-CallbackFunc = Callable[[int, Callback, Tuple], str]
+if TYPE_CHECKING:   # imports for typing
+    from nuqql_based.account import Account     # noqa
+
+CallbackFunc = Callable[[Optional["Account"], Callback, Tuple], str]
 CallbackTuple = Tuple[Callback, CallbackFunc]
 CallbackList = List[CallbackTuple]
 
@@ -56,7 +59,7 @@ class Based:
 
         # load config from command line arguments and config file
         self.config.init()
-        self.callbacks.call(Callback.BASED_CONFIG, -1, (self.config, ))
+        self.callbacks.call(Callback.BASED_CONFIG, None, (self.config, ))
 
         # init main logger
         self.loggers.init_main()
@@ -68,7 +71,7 @@ class Based:
         try:
             self.server.run()
         except KeyboardInterrupt:
-            self.callbacks.call(Callback.BASED_INTERRUPT, -1, ())
+            self.callbacks.call(Callback.BASED_INTERRUPT, None, ())
         finally:
-            self.callbacks.call(Callback.BASED_QUIT, -1, ())
+            self.callbacks.call(Callback.BASED_QUIT, None, ())
             sys.exit()

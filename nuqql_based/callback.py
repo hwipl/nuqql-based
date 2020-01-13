@@ -2,8 +2,11 @@
 Nuqql-based callbacks
 """
 
-from typing import Callable, Dict, Tuple
+from typing import TYPE_CHECKING, Callable, Dict, Optional, Tuple
 from enum import Enum
+
+if TYPE_CHECKING:   # imports for typing
+    from nuqql_based.account import Account     # noqa
 
 
 class Callback(Enum):
@@ -36,7 +39,7 @@ class Callback(Enum):
     VERSION = "VERSION"
 
 
-CallbackFunc = Callable[[int, Callback, Tuple], str]
+CallbackFunc = Callable[[Optional["Account"], Callback, Tuple], str]
 
 
 class Callbacks:
@@ -61,12 +64,13 @@ class Callbacks:
         if name in self.callbacks:
             del self.callbacks[name]
 
-    def call(self, name: Callback, account_id: int, params: Tuple) -> str:
+    def call(self, name: Callback, account: Optional["Account"],
+             params: Tuple) -> str:
         """
         Call callback if it is registered
         """
 
         if name in self.callbacks:
-            return self.callbacks[name](account_id, name, params)
+            return self.callbacks[name](account, name, params)
 
         return ""
