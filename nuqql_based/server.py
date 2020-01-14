@@ -331,6 +331,9 @@ class Server:
         # TODO: this expects a list. change to string? document list req?
         history += self.callbacks.call(Callback.COLLECT_MESSAGES, acc, ())
 
+        # append info message to notify caller that everything was collected
+        history += [Message.info(f"collected messages for account {acc_id}.")]
+
         # return history as single string
         return "".join(history)
 
