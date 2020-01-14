@@ -331,10 +331,8 @@ class BackendInetTest(unittest.TestCase):
 
         # try again, there should be no reply because history is empty
         self.send_cmd("account 0 collect")
-        with self.assertRaises(socket.timeout):
-            self.set_timeout(1)
-            self.recv_msg()
-            self.set_timeout(DEFAULT_TIMEOUT)
+        reply = self.recv_msg()
+        self.assertEqual(reply, "info: collected messages for account 0.")
 
     def test_status(self) -> None:
         """
