@@ -183,10 +183,8 @@ class BackendInetTest(unittest.TestCase):
 
         # empty account list, except nothing/timeout
         self.send_cmd("account list")
-        with self.assertRaises(socket.timeout):
-            self.set_timeout(1)
-            self.recv_msg()
-            self.set_timeout(DEFAULT_TIMEOUT)
+        reply = self.recv_msg()
+        self.assertEqual(reply, "info: listed accounts.")
 
         # add new account
         self.send_cmd("account add test test@example.com testpw")
@@ -197,6 +195,8 @@ class BackendInetTest(unittest.TestCase):
         self.send_cmd("account list")
         reply = self.recv_msg()
         self.assertEqual(reply, "account: 0 () test test@example.com [online]")
+        reply = self.recv_msg()
+        self.assertEqual(reply, "info: listed accounts.")
 
         # add new account
         self.send_cmd("account add test test2@test.com test2pw")
@@ -213,6 +213,8 @@ class BackendInetTest(unittest.TestCase):
                          "account: 0 () test test@example.com [online]")
         self.assertEqual(replies[1],
                          "account: 1 () test test2@test.com [online]")
+        reply = self.recv_msg()
+        self.assertEqual(reply, "info: listed accounts.")
 
         # delete first account
         self.send_cmd("account 0 delete")
@@ -223,6 +225,8 @@ class BackendInetTest(unittest.TestCase):
         self.send_cmd("account list")
         reply = self.recv_msg()
         self.assertEqual(reply, "account: 1 () test test2@test.com [online]")
+        reply = self.recv_msg()
+        self.assertEqual(reply, "info: listed accounts.")
 
         # add another account, should get first account id
         self.send_cmd("account add test test3@other.com test3pw")
@@ -239,6 +243,8 @@ class BackendInetTest(unittest.TestCase):
                          "account: 0 () test test3@other.com [online]")
         self.assertEqual(replies[1],
                          "account: 1 () test test2@test.com [online]")
+        reply = self.recv_msg()
+        self.assertEqual(reply, "info: listed accounts.")
 
     def test_buddies(self) -> None:
         """
