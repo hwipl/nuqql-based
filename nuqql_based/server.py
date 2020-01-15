@@ -211,6 +211,9 @@ class Server:
             reply = Message.account(acc)
             replies.append(reply)
 
+        # inform caller that all accounts have been received
+        replies.append(Message.info("listed accounts."))
+
         # log event
         log_msg = "account list: {0}".format(replies)
         log = self.loggers.get("main")
