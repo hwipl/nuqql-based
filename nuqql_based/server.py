@@ -296,6 +296,9 @@ class Server:
             reply = Message.buddy(acc, buddy)
             replies.append(reply)
 
+        # add info message that all buddies have been received
+        replies.append(Message.info(f"got buddies for account {acc_id}."))
+
         # log event
         log_msg = "account {0} buddies: {1}".format(acc_id, replies)
         log = self.loggers.get(str(acc_id))
