@@ -257,10 +257,8 @@ class BackendInetTest(unittest.TestCase):
 
         # retrieve buddy list with empty buddy list
         self.send_cmd("account 0 buddies")
-        with self.assertRaises(socket.timeout):
-            self.set_timeout(1)
-            self.recv_msg()
-            self.set_timeout(DEFAULT_TIMEOUT)
+        reply = self.recv_msg()
+        self.assertEqual(reply, "info: got buddies for account 0.")
 
         # add buddy with send and retrieve buddy list
         self.send_cmd("account 0 send buddy1@example.com test")
@@ -268,6 +266,8 @@ class BackendInetTest(unittest.TestCase):
         reply = self.recv_msg()
         self.assertEqual(reply,
                          "buddy: 0 status:  name: buddy1@example.com alias: ")
+        reply = self.recv_msg()
+        self.assertEqual(reply, "info: got buddies for account 0.")
 
         # add more buddies and retrieve buddy list again
         self.send_cmd("account 0 send buddy2@test.com test")
@@ -284,13 +284,13 @@ class BackendInetTest(unittest.TestCase):
                          "buddy: 0 status:  name: buddy2@test.com alias: ")
         self.assertEqual(replies[2],
                          "buddy: 0 status:  name: buddy3@other.com alias: ")
+        reply = self.recv_msg()
+        self.assertEqual(reply, "info: got buddies for account 0.")
 
         # retrieve only online buddies
         self.send_cmd("account 0 buddies online")
-        with self.assertRaises(socket.timeout):
-            self.set_timeout(1)
-            self.recv_msg()
-            self.set_timeout(DEFAULT_TIMEOUT)
+        reply = self.recv_msg()
+        self.assertEqual(reply, "info: got buddies for account 0.")
 
     def test_send(self) -> None:
         """
