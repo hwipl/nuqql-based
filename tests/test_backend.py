@@ -268,6 +268,8 @@ class BackendInetTest(unittest.TestCase):
 
         # add buddy with send and retrieve buddy list
         self.send_cmd("account 0 send buddy1@example.com test")
+        reply = self.recv_msg()
+        self.assertEqual(reply[:8], "message:")  # test backend returns msg
         self.send_cmd("account 0 buddies")
         reply = self.recv_msg()
         self.assertEqual(reply,
@@ -277,7 +279,11 @@ class BackendInetTest(unittest.TestCase):
 
         # add more buddies and retrieve buddy list again
         self.send_cmd("account 0 send buddy2@test.com test")
+        reply = self.recv_msg()
+        self.assertEqual(reply[:8], "message:")  # test backend returns msg
         self.send_cmd("account 0 send buddy3@other.com test")
+        reply = self.recv_msg()
+        self.assertEqual(reply[:8], "message:")  # test backend returns msg
         self.send_cmd("account 0 buddies")
         replies = []
         replies.append(self.recv_msg())
@@ -304,21 +310,23 @@ class BackendInetTest(unittest.TestCase):
         """
 
         # try without an account
-        self.send_cmd("account 0 send buddy1@example.com this is a test!")
+        buddy = "buddy1@example.com"
+        self.send_cmd(f"account 0 send {buddy} this is a test!")
         reply = self.recv_msg()
         self.assertEqual(reply, "error: invalid account")
 
         # add an account
-        self.send_cmd("account add test test@example.com testpw")
+        user = "test@example.com"
+        self.send_cmd(f"account add test {user} testpw")
         reply = self.recv_msg()
         self.assertEqual(reply, "info: new account added.")
 
         # try again, there should be no reply
-        self.send_cmd("account 0 send buddy1@example.com this is a test!")
-        with self.assertRaises(socket.timeout):
-            self.set_timeout(1)
-            self.recv_msg()
-            self.set_timeout(DEFAULT_TIMEOUT)
+        msg = "this is a test!"
+        self.send_cmd(f"account 0 send {buddy} {msg}")
+        reply = self.recv_msg()
+        self.assertRegex(reply,
+                         f"message: 0 {user} [0-9]+ {buddy} {msg.upper()}")
 
     def test_collect(self) -> None:
         """
