@@ -4,6 +4,8 @@
 Basic nuqql backend main entry point
 """
 
+import time
+
 from typing import TYPE_CHECKING, Callable, List, Optional, Tuple
 
 from nuqql_based.based import Based
@@ -41,6 +43,20 @@ def get_status(acc: Optional["Account"], _cmd: Callback,
     return ""
 
 
+def send_message(acc: Optional["Account"], _cmd: Callback,
+                 params: Tuple) -> str:
+    """
+    Send a message to another user. For testing, this simply modifies the
+    message and returns it to the sender.
+    """
+
+    assert acc
+    dest, msg = params
+    acc.receive_msg(Message.message(acc, str(int(time.time())), dest, acc.user,
+                                    msg.upper()))
+    return ""
+
+
 def main() -> None:
     """
     Main function
@@ -50,6 +66,7 @@ def main() -> None:
     callbacks: List[Tuple[Callback, CallbackFunc]] = [
         (Callback.SET_STATUS, set_status),
         (Callback.GET_STATUS, get_status),
+        (Callback.SEND_MESSAGE, send_message),
     ]
     based.set_callbacks(callbacks)
     based.start()
