@@ -77,6 +77,40 @@ You can omit the callbacks you do not need in the `callbacks` list. In addition
 to the code above, you need to implement the callbacks you specify in your
 `callbacks` list.
 
+The parameters passed to all callbacks are: the account, the callback and a
+callback-specific parameter tuple. The following example shows the
+`send_message` callback:
+
+```python
+def send_message(account, callback, params):
+    """
+    Send a message to another user.
+    """
+
+    dest, msg = params
+    # do something with the message...
+
+    return ""
+```
+
+The callbacks are only used for commands coming from nuqql. You must handle
+backend-specific events like receiving messages from other users in your
+backend code and optionally pass them to nuqql-based. The following example
+shows how incoming messages from other users can be passed to nuqql-based with
+`Message.message()` and `receive_msg()`:
+
+```python
+from nuqql_based.message import Message
+
+def receive(account, timestamp, sender, destination, text):
+    """
+    Receive message from other user.
+    """
+
+    msg = Message.message(account, timestamp, sender, destination, text)
+    account.receive_msg(msg)
+```
+
 
 ## Changes
 
