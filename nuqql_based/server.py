@@ -466,11 +466,40 @@ class Server:
 
         return ""
 
+    def _handle_account_command(self, command: str, acc_id: int,
+                                params: List[str]) -> str:
+        if command == "list":
+            return self._handle_account_list()
+
+        if command == "add":
+            # currently this supports "account <ID> add" and "account add <ID>"
+            # if the account ID is valid
+            return self._handle_account_add(params)
+
+        if command == "delete":
+            return self._handle_account_delete(acc_id)
+
+        # handle other commands with same parameters
+        command_map = {
+            "buddies": self._handle_account_buddies,
+            "collect": self._handle_account_collect,
+            "send": self._handle_account_send,
+            "status": self._handle_account_status,
+            "chat": self._handle_account_chat,
+        }
+        if command in command_map:
+            return command_map[command](acc_id, params)
+
+        return Message.error("unknown command")
+
     def _handle_account(self, parts: List[str]) -> str:
         """
         Handle account specific commands received from client
         """
 
+        # prepare everything for the actual command handling later
+        acc_id = -1
+        params = []
         if parts[1] == "list":
             # special case for "list" command
             command = parts[1]
@@ -493,33 +522,7 @@ class Server:
             # invalid command, ignore
             return Message.error("invalid command")
 
-        if command == "list":
-            return self._handle_account_list()
-
-        if command == "add":
-            # TODO: currently this supports
-            # "account <ID> add" and "account add <ID>", OK?
-            return self._handle_account_add(params)
-
-        if command == "delete":
-            return self._handle_account_delete(acc_id)
-
-        if command == "buddies":
-            return self._handle_account_buddies(acc_id, params)
-
-        if command == "collect":
-            return self._handle_account_collect(acc_id, params)
-
-        if command == "send":
-            return self._handle_account_send(acc_id, params)
-
-        if command == "status":
-            return self._handle_account_status(acc_id, params)
-
-        if command == "chat":
-            return self._handle_account_chat(acc_id, params)
-
-        return Message.error("unknown command")
+        return self._handle_account_command(command, acc_id, params)
 
     def _handle_version(self) -> Tuple[str, str]:
         """
