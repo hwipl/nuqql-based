@@ -6,9 +6,10 @@ import sys
 
 from typing import TYPE_CHECKING, Callable, List, Optional, Tuple
 
+import nuqql_based.logger
+
 from nuqql_based.account import AccountList
 from nuqql_based.callback import Callbacks, Callback
-from nuqql_based.logger import Loggers
 from nuqql_based.config import Config
 from nuqql_based.server import Server
 
@@ -33,15 +34,11 @@ class Based:
         # config
         self.config = Config(name, version)
 
-        # loggers
-        self.loggers = Loggers(self.config)
-
         # account list
-        self.accounts = AccountList(self.config, self.loggers, self.callbacks)
+        self.accounts = AccountList(self.config, self.callbacks)
 
         # server
-        self.server = Server(self.config, self.loggers, self.callbacks,
-                             self.accounts)
+        self.server = Server(self.config, self.callbacks, self.accounts)
 
     def set_callbacks(self, callbacks: CallbackList) -> None:
         """
@@ -62,8 +59,8 @@ class Based:
         self.config.init()
         self.callbacks.call(Callback.BASED_CONFIG, None, (self.config, ))
 
-        # init main logger
-        self.loggers.init_main()
+        # logging
+        nuqql_based.logger.init(self.config)
 
         # load account list
         self.accounts.load()

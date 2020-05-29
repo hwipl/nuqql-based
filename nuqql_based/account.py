@@ -3,6 +3,7 @@ Nuqql-based accounts
 """
 
 import configparser
+import logging
 import stat
 import os
 
@@ -17,7 +18,6 @@ if TYPE_CHECKING:   # imports for typing
     # pylint: disable=cyclic-import
     from logging import Logger  # noqa
     from nuqql_based.callback import Callbacks  # noqa
-    from nuqql_based.logger import Loggers  # noqa
     from nuqql_based.config import Config  # noqa
 
 
@@ -26,8 +26,8 @@ class Account:
     Storage for account specific information
     """
 
-    def __init__(self, config: "Config", logger: "Logger",
-                 callbacks: "Callbacks", aid: int = 0) -> None:
+    def __init__(self, config: "Config", callbacks: "Callbacks",
+                 aid: int = 0) -> None:
         self.aid = aid
         self.name = ""
         self.type = "dummy"
@@ -41,7 +41,6 @@ class Account:
         self._history: List[str] = []
         self._history_lock = Lock()
         self.config = config
-        self.logger = logger
         self.callbacks = callbacks
 
     def send_msg(self, user: str, msg: str) -> None:
@@ -55,7 +54,7 @@ class Account:
 
         # log message
         log_msg = "message: to {0}: {1}".format(user, msg)
-        self.logger.info(log_msg)
+        logging.info(log_msg)
 
         # add unknown buddies on send
         self.add_buddy(user, "", "")
@@ -140,7 +139,7 @@ class Account:
         was_new = self._add_buddy(name, alias, status)
         self._buddies_lock.release()
         if was_new:
-            self.log("account {0}: new buddy: {1}".format(self.aid, name))
+            logging.info("account %d: new buddy: %s", self.aid, name)
 
     def update_buddies(self, buddy_list: List[Tuple[str, str, str]]) -> None:
         """
@@ -153,23 +152,14 @@ class Account:
             self._add_buddy(name, alias, status)
         self._buddies_lock.release()
 
-    def log(self, text: str) -> None:
-        """
-        Log text to account's logger if present
-        """
-
-        self.logger.info(text)
-
 
 class AccountList:
     """
     List of all accounts
     """
 
-    def __init__(self, config: "Config", loggers: "Loggers",
-                 callbacks: "Callbacks") -> None:
+    def __init__(self, config: "Config", callbacks: "Callbacks") -> None:
         self.config = config
-        self.loggers = loggers
         self.callbacks = callbacks
         # TODO: add locking?
         self.accounts: Dict[int, Account] = {}
@@ -203,8 +193,7 @@ class AccountList:
                 accconf.write(acc_file)
         except (OSError, configparser.Error) as error:
             error_msg = "Error storing accounts file: {}".format(error)
-            log = self.loggers.get("main")
-            log.error(error_msg)
+            logging.error(error_msg)
 
     def load(self) -> Dict[int, Account]:
         """
@@ -227,8 +216,7 @@ class AccountList:
             accconf.read(accounts_file)
         except configparser.Error as error:
             error_msg = "Error loading accounts file: {}".format(error)
-            log = self.loggers.get("main")
-            log.error(error_msg)
+            logging.error(error_msg)
 
         for section in accconf.sections():
             # try to read account from account file
@@ -239,8 +227,7 @@ class AccountList:
                 acc_pass = accconf[section]["password"]
             except KeyError as error:
                 error_msg = "Error loading account: {}".format(error)
-                log = self.loggers.get("main")
-                log.error(error_msg)
+                logging.error(error_msg)
                 continue
 
             # add account
@@ -287,12 +274,9 @@ class AccountList:
         if acc_id is None:
             acc_id = self._get_free_account_id()
 
-        # create new logger
-        logger = self.loggers.add_account(acc_id)
-
         # create account and add it to list
-        new_acc = Account(config=self.config, logger=logger,
-                          callbacks=self.callbacks, aid=acc_id)
+        new_acc = Account(config=self.config, callbacks=self.callbacks,
+                          aid=acc_id)
         new_acc.type = acc_type
         new_acc.user = acc_user
         new_acc.password = acc_pass
@@ -305,8 +289,7 @@ class AccountList:
         log_msg = "account new: id {0} type {1} user {2}".format(new_acc.aid,
                                                                  new_acc.type,
                                                                  new_acc.user)
-        log = self.loggers.get("main")
-        log.info(log_msg)
+        logging.info(log_msg)
 
         # notify callback (if present) about new account
         self.callbacks.call(Callback.ADD_ACCOUNT, new_acc, ())
@@ -328,7 +311,6 @@ class AccountList:
 
         # log event
         log_msg = "account deleted: id {0}".format(acc_id)
-        log = self.loggers.get("main")
-        log.info(log_msg)
+        logging.info(log_msg)
 
         return "account {} deleted.".format(acc_id)

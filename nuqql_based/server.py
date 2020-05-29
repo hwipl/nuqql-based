@@ -3,6 +3,7 @@ nuqql-based socket server
 """
 
 import socketserver
+import logging
 import select
 import stat
 import sys
@@ -21,7 +22,6 @@ if TYPE_CHECKING:   # imports for typing
     # pylint: disable=cyclic-import
     from nuqql_based.config import Config  # noqa
     from nuqql_based.callback import Callbacks  # noqa
-    from nuqql_based.logger import Loggers  # noqa
     from nuqql_based.account import Account, AccountList  # noqa
 
 
@@ -139,11 +139,10 @@ class Server:
     Based server class
     """
 
-    def __init__(self, config: "Config", loggers: "Loggers",
-                 callbacks: "Callbacks", account_list: "AccountList") -> None:
+    def __init__(self, config: "Config", callbacks: "Callbacks",
+                 account_list: "AccountList") -> None:
         self.server: Optional[socketserver.BaseServer] = None
         self.config = config
-        self.loggers = loggers
         self.callbacks = callbacks
         self.account_list = account_list
 
@@ -217,8 +216,7 @@ class Server:
 
         # log event
         log_msg = "account list: {0}".format(replies)
-        log = self.loggers.get("main")
-        log.info(log_msg)
+        logging.info(log_msg)
 
         # return a single string
         return "".join(replies)
@@ -305,8 +303,7 @@ class Server:
 
         # log event
         log_msg = "account {0} buddies: {1}".format(acc_id, replies)
-        log = self.loggers.get(str(acc_id))
-        log.info(log_msg)
+        logging.info(log_msg)
 
         # return replies as single string
         return "".join(replies)
@@ -328,8 +325,7 @@ class Server:
 
         # log event
         log_msg = "account {0} collect {1}".format(acc_id, time)
-        log = self.loggers.get(str(acc_id))
-        log.info(log_msg)
+        logging.info(log_msg)
 
         # collect messages
         accounts = self.account_list.get()
