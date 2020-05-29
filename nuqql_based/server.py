@@ -22,7 +22,7 @@ if TYPE_CHECKING:   # imports for typing
     from nuqql_based.config import Config  # noqa
     from nuqql_based.callback import Callbacks  # noqa
     from nuqql_based.logger import Loggers  # noqa
-    from nuqql_based.account import AccountList  # noqa
+    from nuqql_based.account import Account, AccountList  # noqa
 
 
 class _TCPServer(socketserver.TCPServer):
@@ -399,6 +399,39 @@ class Server:
             return self.callbacks.call(Callback.SET_STATUS, acc, (status, ))
         return ""
 
+    def _handle_account_chat_2_params(self, cmd: str, acc: "Account",
+                                      chat: str) -> str:
+        # join a chat
+        if cmd == "join":
+            return self.callbacks.call(Callback.CHAT_JOIN, acc, (chat, ))
+
+        # leave a chat
+        if cmd == "part":
+            return self.callbacks.call(Callback.CHAT_PART, acc, (chat, ))
+
+        # get users in chat
+        if cmd == "users":
+            return self.callbacks.call(Callback.CHAT_USERS, acc, (chat, ))
+
+        return ""
+
+    def _handle_account_chat_3plus_params(self, acc: "Account",
+                                          params: List[str]) -> str:
+        cmd = params[0]
+        chat = params[1]
+
+        # invite a user to a chat
+        if cmd == "invite":
+            user = params[2]
+            return self.callbacks.call(Callback.CHAT_INVITE, acc, (chat, user))
+
+        # send a message to a chat
+        if cmd == "send":
+            msg = " ".join(params[2:])
+            return self.callbacks.call(Callback.CHAT_SEND, acc, (chat, msg))
+
+        return ""
+
     def _handle_account_chat(self, acc_id: int, params: List[str]) -> str:
         """
         Join, part, and list chats and send messages to chats
@@ -423,34 +456,13 @@ class Server:
         if params[0] == "list":
             return self.callbacks.call(Callback.CHAT_LIST, acc, ())
 
-        if len(params) < 2:
-            return ""
+        if len(params) == 2:
+            cmd = params[0]
+            chat = params[1]
+            return self._handle_account_chat_2_params(cmd, acc, chat)
 
-        chat = params[1]
-        # join a chat
-        if params[0] == "join":
-            return self.callbacks.call(Callback.CHAT_JOIN, acc, (chat, ))
-
-        # leave a chat
-        if params[0] == "part":
-            return self.callbacks.call(Callback.CHAT_PART, acc, (chat, ))
-
-        # get users in chat
-        if params[0] == "users":
-            return self.callbacks.call(Callback.CHAT_USERS, acc, (chat, ))
-
-        if len(params) < 3:
-            return ""
-
-        # invite a user to a chat
-        if params[0] == "invite":
-            user = params[2]
-            return self.callbacks.call(Callback.CHAT_INVITE, acc, (chat, user))
-
-        # send a message to a chat
-        if params[0] == "send":
-            msg = " ".join(params[2:])
-            return self.callbacks.call(Callback.CHAT_SEND, acc, (chat, msg))
+        if len(params) >= 3:
+            return self._handle_account_chat_3plus_params(acc, params)
 
         return ""
 
