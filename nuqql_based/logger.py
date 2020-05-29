@@ -8,8 +8,9 @@ import os
 
 from typing import TYPE_CHECKING, Dict
 if TYPE_CHECKING:   # imports for typing
-    import pathlib
-    from nuqql_based.config import Config
+    # pylint: disable=cyclic-import
+    import pathlib  # noqa
+    from nuqql_based.config import Config  # noqa
 
 
 class Loggers:

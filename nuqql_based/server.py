@@ -18,10 +18,11 @@ from nuqql_based.callback import Callback
 from nuqql_based.message import Message
 
 if TYPE_CHECKING:   # imports for typing
-    from nuqql_based.config import Config
-    from nuqql_based.callback import Callbacks
-    from nuqql_based.logger import Loggers
-    from nuqql_based.account import AccountList
+    # pylint: disable=cyclic-import
+    from nuqql_based.config import Config  # noqa
+    from nuqql_based.callback import Callbacks  # noqa
+    from nuqql_based.logger import Loggers  # noqa
+    from nuqql_based.account import AccountList  # noqa
 
 
 class _TCPServer(socketserver.TCPServer):

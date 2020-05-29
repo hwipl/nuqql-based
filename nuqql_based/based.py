@@ -13,7 +13,8 @@ from nuqql_based.config import Config
 from nuqql_based.server import Server
 
 if TYPE_CHECKING:   # imports for typing
-    from nuqql_based.account import Account     # noqa
+    # pylint: disable=cyclic-import
+    from nuqql_based.account import Account  # noqa
 
 CallbackFunc = Callable[[Optional["Account"], Callback, Tuple], str]
 CallbackTuple = Tuple[Callback, CallbackFunc]

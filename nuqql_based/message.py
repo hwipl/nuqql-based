@@ -7,8 +7,9 @@ from enum import Enum
 
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:   # imports for typing
-    from nuqql_based.account import Account
-    from nuqql_based.buddy import Buddy
+    # pylint: disable=cyclic-import
+    from nuqql_based.account import Account  # noqa
+    from nuqql_based.buddy import Buddy  # noqa
 
 
 class Message(str, Enum):

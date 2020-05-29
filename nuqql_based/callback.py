@@ -6,7 +6,8 @@ from typing import TYPE_CHECKING, Callable, Dict, Optional, Tuple
 from enum import Enum
 
 if TYPE_CHECKING:   # imports for typing
-    from nuqql_based.account import Account     # noqa
+    # pylint: disable=cyclic-import
+    from nuqql_based.account import Account  # noqa
 
 
 class Callback(Enum):

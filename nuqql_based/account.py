@@ -14,10 +14,11 @@ from nuqql_based.message import Message
 from nuqql_based.buddy import Buddy
 
 if TYPE_CHECKING:   # imports for typing
-    from logging import Logger
-    from nuqql_based.callback import Callbacks
-    from nuqql_based.logger import Loggers
-    from nuqql_based.config import Config
+    # pylint: disable=cyclic-import
+    from logging import Logger  # noqa
+    from nuqql_based.callback import Callbacks  # noqa
+    from nuqql_based.logger import Loggers  # noqa
+    from nuqql_based.config import Config  # noqa
 
 
 class Account:
