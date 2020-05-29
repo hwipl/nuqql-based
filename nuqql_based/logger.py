@@ -29,7 +29,7 @@ def init(config: "Config") -> None:
     date_fmt = "%s"
     loglevel = config.get_loglevel()
     logging.basicConfig(filename=file_name, format=fmt, datefmt=date_fmt,
-                        level=loglevel)
+                        level=loglevel, force=True)
 
     # restrict log file access
     os.chmod(file_name, stat.S_IRUSR | stat.S_IWUSR)
