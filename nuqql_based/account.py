@@ -27,17 +27,13 @@ class Account:
     """
 
     def __init__(self, config: "Config", logger: "Logger",
-                 callbacks: "Callbacks", aid: int = 0,
-                 name: str = "", atype: str = "dummy",
-                 user: str = "dummy@dummy.com",
-                 password: str = "dummy_password",
-                 status: str = "online") -> None:
+                 callbacks: "Callbacks", aid: int = 0) -> None:
         self.aid = aid
-        self.name = name
-        self.type = atype
-        self.user = user
-        self.password = password
-        self.status = status
+        self.name = ""
+        self.type = "dummy"
+        self.user = "dummy@dummy.com"
+        self.password = "dummy_password"
+        self.status = "online"
         self._buddies: List[Buddy] = []
         self._buddies_lock = Lock()
         self._messages: List[str] = []
@@ -296,8 +292,10 @@ class AccountList:
 
         # create account and add it to list
         new_acc = Account(config=self.config, logger=logger,
-                          callbacks=self.callbacks, aid=acc_id, atype=acc_type,
-                          user=acc_user, password=acc_pass)
+                          callbacks=self.callbacks, aid=acc_id)
+        new_acc.type = acc_type
+        new_acc.user = acc_user
+        new_acc.password = acc_pass
         self.accounts[new_acc.aid] = new_acc
 
         # store updated accounts in file
