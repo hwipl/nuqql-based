@@ -25,7 +25,7 @@ def init(config: "Config") -> None:
     # configure logging
     name = config.get_name()
     file_name = logs_dir / f"{name}.log"
-    fmt = "%(asctime)s %(levelname)-5.5s [%(name)s] %(message)s"
+    fmt = "%(asctime)s %(levelname)-5.5s %(message)s"
     date_fmt = "%s"
     loglevel = config.get_loglevel()
     logging.basicConfig(filename=file_name, format=fmt, datefmt=date_fmt,
