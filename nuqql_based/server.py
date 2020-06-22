@@ -252,7 +252,7 @@ class Server:
         result = self.account_list.add(acc_type, acc_user, acc_pass)
 
         # inform caller about result
-        return Message.info(result)
+        return result
 
     def _handle_account_delete(self, acc_id: int) -> str:
         """

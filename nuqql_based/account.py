@@ -268,7 +268,7 @@ class AccountList:
         # make sure the account does not exist
         for acc in self.accounts.values():
             if acc.type == acc_type and acc.user == acc_user:
-                return "account already exists."
+                return Message.info("account already exists.")
 
         # get a free account id if none is given
         if acc_id is None:
@@ -294,7 +294,11 @@ class AccountList:
         # notify callback (if present) about new account
         self.callbacks.call(Callback.ADD_ACCOUNT, new_acc, ())
 
-        return "new account added."
+        # return result
+        result = Message.info("new account added.")
+        if self.config.get_push_accounts():
+            result += Message.account(new_acc)
+        return result
 
     def delete(self, acc_id: int) -> str:
         """
