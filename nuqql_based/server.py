@@ -103,7 +103,7 @@ class _Handler(socketserver.BaseRequestHandler):
     def handle(self):
         # self.request is the client socket
         while True:
-            # handle incoming xmpp messages
+            # handle incoming messages
             self.handle_incoming()
 
             # handle messages from nuqql client
