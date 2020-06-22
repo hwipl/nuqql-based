@@ -102,6 +102,14 @@ class _Handler(socketserver.BaseRequestHandler):
 
     def handle(self):
         # self.request is the client socket
+
+        # push accounts to client if "push-accounts" is configured
+        based_server = self.server.based_server
+        if based_server.config.get_push_accounts():
+            accounts = based_server.handle_account_list()
+            if accounts:
+                self.request.sendall(accounts.encode())
+
         while True:
             # handle incoming messages
             self.handle_incoming()
@@ -200,7 +208,7 @@ class Server:
             elif self.config.get_af() == "unix":
                 self._run_unix()
 
-    def _handle_account_list(self) -> str:
+    def handle_account_list(self) -> str:
         """
         List all accounts
         """
@@ -465,7 +473,7 @@ class Server:
     def _handle_account_command(self, command: str, acc_id: int,
                                 params: List[str]) -> str:
         if command == "list":
-            return self._handle_account_list()
+            return self.handle_account_list()
 
         if command == "add":
             # currently this supports "account <ID> add" and "account add <ID>"

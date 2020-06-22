@@ -38,6 +38,7 @@ class Config:
         self._daemonize = False
         self._loglevel = self._LOGLEVEL_MAP[self._DEFAULT_LOGLEVEL]
         self._history = True
+        self._push_accounts = False
 
     def get_from_args(self) -> None:
         """
@@ -68,6 +69,8 @@ class Config:
                             help="Logging level")
         parser.add_argument("--disable-history", action="store_true",
                             help="disable message history")
+        parser.add_argument("--push-accounts", action="store_true",
+                            help="push accounts to client")
 
         # parse command line arguments
         args = parser.parse_args()
@@ -89,6 +92,8 @@ class Config:
             self._loglevel = self._LOGLEVEL_MAP[args.loglevel]
         if args.disable_history:
             self._history = False
+        if args.push_accounts:
+            self._push_accounts = True
 
     def read_from_file(self) -> None:
         """
@@ -134,6 +139,8 @@ class Config:
                         self._LOGLEVEL_MAP[self._DEFAULT_LOGLEVEL])
                     self._history = config[section].getboolean(
                         "history", fallback=self._history)
+                    self._push_accounts = config[section].getboolean(
+                        "push-accounts", fallback=self._push_accounts)
                 except ValueError as error:
                     error_msg = "Error parsing config file: {}".format(error)
                     print(error_msg)
@@ -208,6 +215,14 @@ class Config:
         """
 
         return self._history
+
+    def get_push_accounts(self) -> bool:
+        """
+        Get push accounts entry from config: pushing accounts to clients
+        enabled or disabled
+        """
+
+        return self._push_accounts
 
     def get_name(self) -> str:
         """
