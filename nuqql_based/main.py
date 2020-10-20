@@ -17,7 +17,7 @@ if TYPE_CHECKING:   # imports for typing
 
 CallbackFunc = Callable[[Optional["Account"], Callback, Tuple], str]
 
-VERSION = "0.1"
+VERSION = "0.2.0"
 
 
 def set_status(acc: Optional["Account"], _cmd: Callback, params: Tuple) -> str:
