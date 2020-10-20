@@ -10,6 +10,8 @@ Other backends using nuqql-based:
   XMPP (Jabber) protocol
 * [nuqql-matrixd](https://github.com/hwipl/nuqql-matrixd): a backend for the
   Matrix protocol
+* [nuqql-matrixd-nio](https://github.com/hwipl/nuqql-matrixd-nio): a backend
+  for the Matrix protocol
 
 Dependencies:
 * [daemon](https://pypi.org/project/python-daemon/) (optional): for daemonize
