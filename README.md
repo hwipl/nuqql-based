@@ -114,5 +114,12 @@ def receive(account, timestamp, sender, destination, text):
 
 ## Changes
 
+* devel:
+  * Use only one log file
+  * Add "push-accounts" to configuration/command line arguments
+  * Add more info messages and extend output of "help" command
+  * Change callback parameter from account id to Account
+  * Add tests
+  * Cleanups and fixes
 * v0.1:
   * First release.
