@@ -50,7 +50,7 @@ class Based:
         for cback, func in callbacks:
             self.callbacks.add(cback, func)
 
-    def start(self) -> None:
+    async def start(self) -> None:
         """
         Start based
         """
@@ -67,7 +67,7 @@ class Based:
 
         # start server
         try:
-            self.server.run()
+            await self.server.run()
         except KeyboardInterrupt:
             self.callbacks.call(Callback.BASED_INTERRUPT, None, ())
         finally:

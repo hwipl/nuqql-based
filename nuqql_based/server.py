@@ -2,9 +2,8 @@
 nuqql-based socket server
 """
 
-import socketserver
+import asyncio
 import logging
-import select
 import stat
 import sys
 import os
@@ -25,123 +24,6 @@ if TYPE_CHECKING:   # imports for typing
     from nuqql_based.account import Account, AccountList  # noqa
 
 
-class _TCPServer(socketserver.TCPServer):
-    def __init__(self, listen, handler, based_server):
-        self.allow_reuse_address = True
-        super().__init__(listen, handler)
-        self.based_server = based_server
-
-
-class _UnixStreamServer(socketserver.UnixStreamServer):
-    def __init__(self, listen, handler, based_server):
-        super().__init__(listen, handler)
-        self.based_server = based_server
-
-
-class _Handler(socketserver.BaseRequestHandler):
-    """
-    Request Handler for the server, instantiated once per client connection.
-
-    This is limited to one client connection at a time. It should be fine for
-    our basic use case.
-    """
-
-    buffer = b""
-
-    def handle_incoming(self):
-        """
-        Handle messages coming from the backend connections
-        """
-
-        # get messages from callback for each account
-        based_server = self.server.based_server
-        callbacks = based_server.callbacks
-        account_list = based_server.account_list
-        accounts = account_list.get()
-        for acc in accounts.values():
-            messages = acc.get_messages()
-            # TODO: this expects a list. change to string? document list req?
-            messages += callbacks.call(Callback.GET_MESSAGES, acc, ())
-            for msg in messages:
-                msg = msg.encode()
-                self.request.sendall(msg)
-
-    def handle_messages(self):
-        """
-        Try to find complete messages in buffer and handle each
-        """
-
-        # try to find first complete message
-        eom = self.buffer.find(Message.EOM.encode())
-        while eom != -1:
-            # extract message from buffer
-            msg = self.buffer[:eom]
-            self.buffer = self.buffer[eom + 2:]
-
-            # check if there is another complete message, for
-            # next loop iteration
-            eom = self.buffer.find(Message.EOM.encode())
-
-            # start message handling
-            try:
-                msg = msg.decode()
-            except UnicodeDecodeError as error:
-                # invalid message format, drop client
-                return "bye", error
-            cmd, reply = self.server.based_server.handle_msg(msg)
-
-            if cmd == "msg" and reply != "":
-                # there is a message for the user, construct reply and send it
-                # back to the user
-                reply = reply.encode()
-                self.request.sendall(reply)
-
-            # if we need to drop the client, or exit the server, return
-            if cmd in ("bye", "quit"):
-                return cmd
-
-    def handle(self):
-        # self.request is the client socket
-
-        # push accounts to client if "push-accounts" is configured
-        based_server = self.server.based_server
-        if based_server.config.get_push_accounts():
-            accounts = based_server.handle_account_list()
-            if accounts:
-                self.request.sendall(accounts.encode())
-
-        while True:
-            # handle incoming messages
-            self.handle_incoming()
-
-            # handle messages from nuqql client
-            # wait 0.1 seconds for data to become available
-            reads, unused_writes, errs = select.select([self.request, ], [],
-                                                       [self.request, ], 0.1)
-            if self.request in errs:
-                # something is wrong, drop client
-                return
-
-            if self.request in reads:
-                # read data from socket and add it to buffer
-                self.data = self.request.recv(1024)
-
-                # self.buffer += self.data.decode()
-                self.buffer += self.data
-
-            # handle each complete message
-            cmd = self.handle_messages()
-
-            # handle special return codes
-            if cmd == "bye":
-                # some error occured handling the messages or user said bye,
-                # drop the client
-                return
-            if cmd == "quit":
-                # quit the server
-                sys.exit()
-
-
 class Server:
     """
     Based server class
@@ -149,22 +31,101 @@ class Server:
 
     def __init__(self, config: "Config", callbacks: "Callbacks",
                  account_list: "AccountList") -> None:
-        self.server: Optional[socketserver.BaseServer] = None
+        self.server: Optional[asyncio.AbstractServer] = None
         self.config = config
         self.callbacks = callbacks
         self.account_list = account_list
 
-    def _run_inet(self) -> None:
+    async def _handle_incoming(self, writer: asyncio.StreamWriter) -> None:
+        """
+        Handle messages coming from the backend connections
+        """
+
+        # get messages from callback for each account
+        accounts = self.account_list.get()
+        for acc in accounts.values():
+            messages = acc.get_messages()
+            # TODO: this expects a list. change to string? document list req?
+            messages += self.callbacks.call(Callback.GET_MESSAGES, acc, ())
+            for msg in messages:
+                writer.write(msg.encode())
+                await writer.drain()
+
+    async def _handle_messages(self, reader: asyncio.StreamReader, writer:
+                               asyncio.StreamWriter) -> str:
+        """
+        Try to find complete messages in buffer and handle each
+        """
+
+        # try to find first complete message
+        try:
+            data = await reader.readuntil(Message.EOM.encode())
+        except asyncio.IncompleteReadError:
+            return "bye"
+
+        # start message handling
+        try:
+            msg = data[:-2].decode()
+        except UnicodeDecodeError:
+            # invalid message format, drop client
+            return "bye"
+        cmd, reply = self.handle_msg(msg)
+
+        if cmd == "msg" and reply != "":
+            # there is a message for the user, construct reply and send it
+            # back to the user
+            writer.write(reply.encode())
+            await writer.drain()
+
+        # return message/command
+        return cmd
+
+    async def _handle_client(self, reader: asyncio.StreamReader, writer:
+                             asyncio.StreamWriter) -> None:
+        """
+        Handle client connection
+        """
+
+        # send accounts to new client if "push accounts" is enabled
+        if self.config.get_push_accounts():
+            accounts = self.handle_account_list()
+            if accounts:
+                writer.write(accounts.encode())
+                await writer.drain()
+
+        while True:
+            # handle incoming messages
+            await self._handle_incoming(writer)
+
+            # handle each complete message
+            cmd = await self._handle_messages(reader, writer)
+
+            # handle special return codes
+            if cmd == "bye":
+                # some error occured handling the messages or user said bye,
+                # drop the client
+                writer.close()
+                await writer.wait_closed()
+                self.connected = False
+                return
+            if cmd == "quit":
+                # quit the server
+                sys.exit()
+
+    async def _run_inet(self) -> None:
         """
         Run an AF_INET server
         """
 
-        listen = (self.config.get_address(), self.config.get_port())
-        with _TCPServer(listen, _Handler, self) as server:
-            self.server = server
-            server.serve_forever()
+        server = await asyncio.start_server(
+            self._handle_client, self.config.get_address(),
+            self.config.get_port())
 
-    def _run_unix(self) -> None:
+        async with server:
+            self.server = server
+            await server.serve_forever()
+
+    async def _run_unix(self) -> None:
         """
         Run an AF_UNIX server
         """
@@ -178,12 +139,16 @@ class Server:
         except FileNotFoundError:
             # ignore if the file did not exist
             pass
-        with _UnixStreamServer(sockfile, _Handler, self) as server:
+
+        server = await asyncio.start_unix_server(
+             self._handle_client, sockfile, start_serving=False)
+
+        async with server:
             os.chmod(sockfile, stat.S_IRUSR | stat.S_IWUSR)
             self.server = server
-            server.serve_forever()
+            await server.serve_forever()
 
-    def run(self) -> None:
+    async def run(self) -> None:
         """
         Run the server; can be AF_INET or AF_UNIX.
         """
@@ -198,15 +163,15 @@ class Server:
             # daemonize the server
             with daemon.DaemonContext():
                 if self.config.get_af() == "inet":
-                    self._run_inet()
+                    await self._run_inet()
                 elif self.config.get_af() == "unix":
-                    self._run_unix()
+                    await self._run_unix()
         else:
             # run in foreground
             if self.config.get_af() == "inet":
-                self._run_inet()
+                await self._run_inet()
             elif self.config.get_af() == "unix":
-                self._run_unix()
+                await self._run_unix()
 
     def handle_account_list(self) -> str:
         """

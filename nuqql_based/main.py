@@ -4,6 +4,7 @@
 Basic nuqql backend main entry point
 """
 
+import asyncio
 import time
 
 from typing import TYPE_CHECKING, Callable, List, Optional, Tuple
@@ -57,7 +58,7 @@ def send_message(acc: Optional["Account"], _cmd: Callback,
     return ""
 
 
-def main() -> None:
+async def main() -> None:
     """
     Main function
     """
@@ -69,8 +70,8 @@ def main() -> None:
         (Callback.SEND_MESSAGE, send_message),
     ]
     based.set_callbacks(callbacks)
-    based.start()
+    await based.start()
 
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())
