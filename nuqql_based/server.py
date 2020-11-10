@@ -35,6 +35,7 @@ class Server:
         self.config = config
         self.callbacks = callbacks
         self.account_list = account_list
+        self.connected = False
 
     async def _handle_incoming(self, writer: asyncio.StreamWriter) -> None:
         """
@@ -85,6 +86,13 @@ class Server:
         """
         Handle client connection
         """
+
+        # only accept one client at a time
+        if self.connected:
+            writer.close()
+            await writer.wait_closed()
+            return
+        self.connected = True
 
         # send accounts to new client if "push accounts" is enabled
         if self.config.get_push_accounts():
