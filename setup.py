@@ -61,6 +61,6 @@ setup(
         "console_scripts": ["nuqql-based = nuqql_based.main:main"]
     },
     classifiers=CLASSIFIERS,
-    python_requires='>=3.6',
+    python_requires='>=3.7',
     zip_safe=False,
 )
