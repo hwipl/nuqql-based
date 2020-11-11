@@ -30,11 +30,12 @@ class Server:
     """
 
     def __init__(self, config: "Config", callbacks: "Callbacks",
-                 account_list: "AccountList") -> None:
+                 account_list: "AccountList", queue: asyncio.Queue) -> None:
         self.server: Optional[asyncio.AbstractServer] = None
         self.config = config
         self.callbacks = callbacks
         self.account_list = account_list
+        self.queue = queue
         self.connected = False
 
     async def _handle_incoming(self, writer: asyncio.StreamWriter) -> None:

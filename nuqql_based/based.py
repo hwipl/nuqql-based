@@ -43,7 +43,7 @@ class Based:
         self.accounts = AccountList(self.config, self.callbacks, queue)
 
         # server
-        self.server = Server(self.config, self.callbacks, self.accounts)
+        self.server = Server(self.config, self.callbacks, self.accounts, queue)
 
     def set_callbacks(self, callbacks: CallbackList) -> None:
         """
