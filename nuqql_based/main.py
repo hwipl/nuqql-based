@@ -58,7 +58,7 @@ def send_message(acc: Optional["Account"], _cmd: Callback,
     return ""
 
 
-async def main() -> None:
+async def _main() -> None:
     """
     Main function
     """
@@ -73,5 +73,13 @@ async def main() -> None:
     await based.start()
 
 
+def main() -> None:
+    """
+    Main entry point
+    """
+
+    asyncio.run(_main())
+
+
 if __name__ == "__main__":
-    asyncio.run(main())
+    main()
