@@ -37,8 +37,6 @@ class Account:
         self.status = "online"
         self._buddies: List[Buddy] = []
         self._buddies_lock = Lock()
-        self._messages: List[str] = []
-        self._messages_lock = Lock()
         self._history: List[str] = []
         self._history_lock = Lock()
         self.config = config
@@ -66,27 +64,13 @@ class Account:
         Receive a message from other users or the backend
         """
 
-        self._messages_lock.acquire()
-        self._messages.append(msg)
-        self._messages_lock.release()
+        self.queue.put(msg)
 
         if Message.is_message(msg) and self.config.get_history():
             # TODO: add timestamp?
             self._history_lock.acquire()
             self._history.append(msg)
             self._history_lock.release()
-
-    def get_messages(self) -> List[str]:
-        """
-        Get received messages as list
-        """
-
-        self._messages_lock.acquire()
-        messages = self._messages[:]
-        self._messages = []
-        self._messages_lock.release()
-
-        return messages
 
     def get_history(self) -> List[str]:
         """

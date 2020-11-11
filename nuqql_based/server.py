@@ -44,14 +44,11 @@ class Server:
         """
 
         # get messages from callback for each account
-        accounts = self.account_list.get()
-        for acc in accounts.values():
-            messages = acc.get_messages()
-            # TODO: this expects a list. change to string? document list req?
-            messages += self.callbacks.call(Callback.GET_MESSAGES, acc, ())
-            for msg in messages:
-                writer.write(msg.encode())
-                await writer.drain()
+        while True:
+            msg = await self.queue.get()
+            writer.write(msg.encode())
+            await writer.drain()
+            self.queue.task_done()
 
     async def _handle_messages(self, reader: asyncio.StreamReader, writer:
                                asyncio.StreamWriter) -> str:
@@ -102,9 +99,10 @@ class Server:
                 writer.write(accounts.encode())
                 await writer.drain()
 
+        # start sending incoming messages to client
+        inc_task = asyncio.create_task(self._handle_incoming(writer))
+
         while True:
-            # handle incoming messages
-            await self._handle_incoming(writer)
 
             # handle each complete message
             cmd = await self._handle_messages(reader, writer)
@@ -113,6 +111,7 @@ class Server:
             if cmd == "bye":
                 # some error occured handling the messages or user said bye,
                 # drop the client
+                inc_task.cancel()
                 writer.close()
                 await writer.wait_closed()
                 self.connected = False
