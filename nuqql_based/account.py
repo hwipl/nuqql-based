@@ -4,6 +4,7 @@ Nuqql-based accounts
 
 import configparser
 import logging
+import asyncio
 import stat
 import os
 
@@ -27,7 +28,7 @@ class Account:
     """
 
     def __init__(self, config: "Config", callbacks: "Callbacks",
-                 aid: int = 0) -> None:
+                 queue: asyncio.Queue, aid: int = 0) -> None:
         self.aid = aid
         self.name = ""
         self.type = "dummy"
@@ -42,6 +43,7 @@ class Account:
         self._history_lock = Lock()
         self.config = config
         self.callbacks = callbacks
+        self.queue = queue
 
     def send_msg(self, user: str, msg: str) -> None:
         """
@@ -158,9 +160,11 @@ class AccountList:
     List of all accounts
     """
 
-    def __init__(self, config: "Config", callbacks: "Callbacks") -> None:
+    def __init__(self, config: "Config", callbacks: "Callbacks",
+                 queue: asyncio.Queue) -> None:
         self.config = config
         self.callbacks = callbacks
+        self.queue = queue
         # TODO: add locking?
         self.accounts: Dict[int, Account] = {}
 
@@ -276,7 +280,7 @@ class AccountList:
 
         # create account and add it to list
         new_acc = Account(config=self.config, callbacks=self.callbacks,
-                          aid=acc_id)
+                          queue=self.queue, aid=acc_id)
         new_acc.type = acc_type
         new_acc.user = acc_user
         new_acc.password = acc_pass

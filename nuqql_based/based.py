@@ -2,6 +2,7 @@
 Basic nuqql backend
 """
 
+import asyncio
 import sys
 
 from typing import TYPE_CHECKING, Callable, List, Optional, Tuple
@@ -34,8 +35,12 @@ class Based:
         # config
         self.config = Config(name, version)
 
+        # create a message queue for message exchange between accounts and the
+        # based server
+        queue: asyncio.Queue = asyncio.Queue()
+
         # account list
-        self.accounts = AccountList(self.config, self.callbacks)
+        self.accounts = AccountList(self.config, self.callbacks, queue)
 
         # server
         self.server = Server(self.config, self.callbacks, self.accounts)
