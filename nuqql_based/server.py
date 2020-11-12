@@ -68,7 +68,7 @@ class Server:
         except UnicodeDecodeError:
             # invalid message format, drop client
             return "bye"
-        cmd, reply = self.handle_msg(msg)
+        cmd, reply = await self.handle_msg(msg)
 
         if cmd == "msg" and reply != "":
             # there is a message for the user, construct reply and send it
@@ -202,7 +202,7 @@ class Server:
         # return a single string
         return "".join(replies)
 
-    def _handle_account_add(self, params: List[str]) -> str:
+    async def _handle_account_add(self, params: List[str]) -> str:
         """
         Add a new account.
 
@@ -222,12 +222,12 @@ class Server:
         acc_pass = params[2]
 
         # add account
-        result = self.account_list.add(acc_type, acc_user, acc_pass)
+        result = await self.account_list.add(acc_type, acc_user, acc_pass)
 
         # inform caller about result
         return result
 
-    def _handle_account_delete(self, acc_id: int) -> str:
+    async def _handle_account_delete(self, acc_id: int) -> str:
         """
         Delete an existing account
 
@@ -236,12 +236,13 @@ class Server:
         """
 
         # delete account
-        result = self.account_list.delete(acc_id)
+        result = await self.account_list.delete(acc_id)
 
         # inform caller about result
         return Message.info(result)
 
-    def _handle_account_buddies(self, acc_id: int, params: List[str]) -> str:
+    async def _handle_account_buddies(self, acc_id: int,
+                                      params: List[str]) -> str:
         """
         Get buddies for a specific account. If params contains "online", filter
         online buddies.
@@ -261,7 +262,7 @@ class Server:
         acc = accounts[acc_id]
 
         # update buddy list
-        self.callbacks.call(Callback.UPDATE_BUDDIES, acc, ())
+        await self.callbacks.call(Callback.UPDATE_BUDDIES, acc, ())
 
         # filter online buddies?
         online = False
@@ -289,7 +290,8 @@ class Server:
         # return replies as single string
         return "".join(replies)
 
-    def _handle_account_collect(self, acc_id: int, params: List[str]) -> str:
+    async def _handle_account_collect(self, acc_id: int,
+                                      params: List[str]) -> str:
         """
         Collect messages for a specific account.
 
@@ -313,7 +315,8 @@ class Server:
         acc = accounts[acc_id]
         history = acc.get_history()
         # TODO: this expects a list. change to string? document list req?
-        history += self.callbacks.call(Callback.COLLECT_MESSAGES, acc, ())
+        history += await self.callbacks.call(Callback.COLLECT_MESSAGES, acc,
+                                             ())
 
         # append info message to notify caller that everything was collected
         history += [Message.info(f"collected messages for account {acc_id}.")]
@@ -321,7 +324,8 @@ class Server:
         # return history as single string
         return "".join(history)
 
-    def _handle_account_send(self, acc_id: int, params: List[str]) -> str:
+    async def _handle_account_send(self, acc_id: int,
+                                   params: List[str]) -> str:
         """
         Send a message to a someone over a specific account.
 
@@ -336,11 +340,12 @@ class Server:
 
         # send message to user
         accounts = self.account_list.get()
-        accounts[acc_id].send_msg(user, msg)
+        await accounts[acc_id].send_msg(user, msg)
 
         return ""
 
-    def _handle_account_status(self, acc_id: int, params: List[str]) -> str:
+    async def _handle_account_status(self, acc_id: int,
+                                     params: List[str]) -> str:
         """
         Get or set current status of account
 
@@ -363,7 +368,7 @@ class Server:
 
         # get current status
         if params[0] == "get":
-            status = self.callbacks.call(Callback.GET_STATUS, acc, ())
+            status = await self.callbacks.call(Callback.GET_STATUS, acc, ())
             if status:
                 return Message.status(acc, status)
 
@@ -373,43 +378,48 @@ class Server:
                 return ""
 
             status = params[1]
-            return self.callbacks.call(Callback.SET_STATUS, acc, (status, ))
+            return await self.callbacks.call(Callback.SET_STATUS, acc,
+                                             (status, ))
         return ""
 
-    def _handle_account_chat_2_params(self, cmd: str, acc: "Account",
-                                      chat: str) -> str:
+    async def _handle_account_chat_2_params(self, cmd: str, acc: "Account",
+                                            chat: str) -> str:
         # join a chat
         if cmd == "join":
-            return self.callbacks.call(Callback.CHAT_JOIN, acc, (chat, ))
+            return await self.callbacks.call(Callback.CHAT_JOIN, acc, (chat, ))
 
         # leave a chat
         if cmd == "part":
-            return self.callbacks.call(Callback.CHAT_PART, acc, (chat, ))
+            return await self.callbacks.call(Callback.CHAT_PART, acc, (chat, ))
 
         # get users in chat
         if cmd == "users":
-            return self.callbacks.call(Callback.CHAT_USERS, acc, (chat, ))
+            return await self.callbacks.call(Callback.CHAT_USERS, acc,
+                                             (chat, ))
 
         return ""
 
-    def _handle_account_chat_3plus_params(self, acc: "Account",
-                                          params: List[str]) -> str:
+    async def _handle_account_chat_3plus_params(self, acc: "Account",
+                                                params: List[str]) -> str:
         cmd = params[0]
         chat = params[1]
 
         # invite a user to a chat
         if cmd == "invite":
             user = params[2]
-            return self.callbacks.call(Callback.CHAT_INVITE, acc, (chat, user))
+            return await self.callbacks.call(Callback.CHAT_INVITE, acc,
+                                             (chat, user))
 
         # send a message to a chat
         if cmd == "send":
             msg = " ".join(params[2:])
-            return self.callbacks.call(Callback.CHAT_SEND, acc, (chat, msg))
+            return await self.callbacks.call(Callback.CHAT_SEND, acc,
+                                             (chat, msg))
 
         return ""
 
-    def _handle_account_chat(self, acc_id: int, params: List[str]) -> str:
+    async def _handle_account_chat(self, acc_id: int,
+                                   params: List[str]) -> str:
         """
         Join, part, and list chats and send messages to chats
 
@@ -431,30 +441,30 @@ class Server:
 
         # list active chats
         if params[0] == "list":
-            return self.callbacks.call(Callback.CHAT_LIST, acc, ())
+            return await self.callbacks.call(Callback.CHAT_LIST, acc, ())
 
         if len(params) == 2:
             cmd = params[0]
             chat = params[1]
-            return self._handle_account_chat_2_params(cmd, acc, chat)
+            return await self._handle_account_chat_2_params(cmd, acc, chat)
 
         if len(params) >= 3:
-            return self._handle_account_chat_3plus_params(acc, params)
+            return await self._handle_account_chat_3plus_params(acc, params)
 
         return ""
 
-    def _handle_account_command(self, command: str, acc_id: int,
-                                params: List[str]) -> str:
+    async def _handle_account_command(self, command: str, acc_id: int,
+                                      params: List[str]) -> str:
         if command == "list":
             return self.handle_account_list()
 
         if command == "add":
             # currently this supports "account <ID> add" and "account add <ID>"
             # if the account ID is valid
-            return self._handle_account_add(params)
+            return await self._handle_account_add(params)
 
         if command == "delete":
-            return self._handle_account_delete(acc_id)
+            return await self._handle_account_delete(acc_id)
 
         # handle other commands with same parameters
         command_map = {
@@ -465,11 +475,11 @@ class Server:
             "chat": self._handle_account_chat,
         }
         if command in command_map:
-            return command_map[command](acc_id, params)
+            return await command_map[command](acc_id, params)
 
         return Message.error("unknown command")
 
-    def _handle_account(self, parts: List[str]) -> str:
+    async def _handle_account(self, parts: List[str]) -> str:
         """
         Handle account specific commands received from client
         """
@@ -499,21 +509,21 @@ class Server:
             # invalid command, ignore
             return Message.error("invalid command")
 
-        return self._handle_account_command(command, acc_id, params)
+        return await self._handle_account_command(command, acc_id, params)
 
-    def _handle_version(self) -> Tuple[str, str]:
+    async def _handle_version(self) -> Tuple[str, str]:
         """
         Handle the version command received from client
         """
 
-        msg = self.callbacks.call(Callback.VERSION, None, ())
+        msg = await self.callbacks.call(Callback.VERSION, None, ())
         if not msg:
             name = self.config.get_name()
             version = self.config.get_version()
             msg = f"version: {name} v{version}"
         return ("msg", Message.info(msg))
 
-    def handle_msg(self, msg: str) -> Tuple[str, str]:
+    async def handle_msg(self, msg: str) -> Tuple[str, str]:
         """
         Handle messages received from client
         """
@@ -523,16 +533,16 @@ class Server:
 
         # account specific commands
         if len(parts) >= 2 and parts[0] == "account":
-            return ("msg", self._handle_account(parts))
+            return ("msg", await self._handle_account(parts))
 
         # handle "bye" and "quit" commands
         if parts[0] in ("bye", "quit"):
             # call disconnect or quit callback in every account
             for acc in self.account_list.get().values():
                 if parts[0] == "bye":
-                    self.callbacks.call(Callback.DISCONNECT, acc, ())
+                    await self.callbacks.call(Callback.DISCONNECT, acc, ())
                 if parts[0] == "quit":
-                    self.callbacks.call(Callback.QUIT, acc, ())
+                    await self.callbacks.call(Callback.QUIT, acc, ())
             return (parts[0], "Goodbye.")
 
         # handle "help" command
@@ -540,7 +550,7 @@ class Server:
             return ("msg", Message.HELP_MSG)
 
         if parts[0] == "version":
-            return self._handle_version()
+            return await self._handle_version()
 
         # others
         # TODO: who?

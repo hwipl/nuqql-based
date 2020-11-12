@@ -7,7 +7,7 @@ Basic nuqql backend main entry point
 import asyncio
 import time
 
-from typing import TYPE_CHECKING, Callable, List, Optional, Tuple
+from typing import TYPE_CHECKING, Awaitable, Callable, List, Optional, Tuple
 
 from nuqql_based.based import Based
 from nuqql_based.callback import Callback
@@ -16,12 +16,13 @@ from nuqql_based.message import Message
 if TYPE_CHECKING:   # imports for typing
     from nuqql_based.account import Account     # noqa
 
-CallbackFunc = Callable[[Optional["Account"], Callback, Tuple], str]
+CallbackFunc = Callable[[Optional["Account"], Callback, Tuple], Awaitable[str]]
 
 VERSION = "0.2.0"
 
 
-def set_status(acc: Optional["Account"], _cmd: Callback, params: Tuple) -> str:
+async def set_status(acc: Optional["Account"], _cmd: Callback,
+                     params: Tuple) -> str:
     """
     Set the status of the account
     """
@@ -33,8 +34,8 @@ def set_status(acc: Optional["Account"], _cmd: Callback, params: Tuple) -> str:
     return ""
 
 
-def get_status(acc: Optional["Account"], _cmd: Callback,
-               _params: Tuple) -> str:
+async def get_status(acc: Optional["Account"], _cmd: Callback,
+                     _params: Tuple) -> str:
     """
     Get the status of the account
     """
@@ -44,8 +45,8 @@ def get_status(acc: Optional["Account"], _cmd: Callback,
     return ""
 
 
-def send_message(acc: Optional["Account"], _cmd: Callback,
-                 params: Tuple) -> str:
+async def send_message(acc: Optional["Account"], _cmd: Callback,
+                       params: Tuple) -> str:
     """
     Send a message to another user. For testing, this simply modifies the
     message and returns it to the sender.

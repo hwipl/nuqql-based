@@ -43,14 +43,14 @@ class Account:
         self.callbacks = callbacks
         self.queue = queue
 
-    def send_msg(self, user: str, msg: str) -> None:
+    async def send_msg(self, user: str, msg: str) -> None:
         """
         Send message to user.
         """
 
         # try to send message
         if self.callbacks:
-            self.callbacks.call(Callback.SEND_MESSAGE, self, (user, msg))
+            await self.callbacks.call(Callback.SEND_MESSAGE, self, (user, msg))
 
         # log message
         log_msg = "message: to {0}: {1}".format(user, msg)
@@ -183,7 +183,7 @@ class AccountList:
             error_msg = "Error storing accounts file: {}".format(error)
             logging.error(error_msg)
 
-    def load(self) -> Dict[int, Account]:
+    async def load(self) -> Dict[int, Account]:
         """
         Load accounts from a file.
         """
@@ -219,7 +219,7 @@ class AccountList:
                 continue
 
             # add account
-            self.add(acc_type, acc_user, acc_pass, acc_id=acc_id)
+            await self.add(acc_type, acc_user, acc_pass, acc_id=acc_id)
 
         return self.accounts
 
@@ -247,8 +247,8 @@ class AccountList:
 
         return last_acc_id + 1
 
-    def add(self, acc_type: str, acc_user: str, acc_pass: str,
-            acc_id: int = None) -> str:
+    async def add(self, acc_type: str, acc_user: str, acc_pass: str,
+                  acc_id: int = None) -> str:
         """
         Add a new account
         """
@@ -280,7 +280,7 @@ class AccountList:
         logging.info(log_msg)
 
         # notify callback (if present) about new account
-        self.callbacks.call(Callback.ADD_ACCOUNT, new_acc, ())
+        await self.callbacks.call(Callback.ADD_ACCOUNT, new_acc, ())
 
         # return result
         result = Message.info("new account added.")
@@ -288,14 +288,14 @@ class AccountList:
             result += Message.account(new_acc)
         return result
 
-    def delete(self, acc_id: int) -> str:
+    async def delete(self, acc_id: int) -> str:
         """
         Delete an account
         """
 
         # notify callback (if present) about deleted account
         acc = self.accounts[acc_id]
-        self.callbacks.call(Callback.DEL_ACCOUNT, acc, ())
+        await self.callbacks.call(Callback.DEL_ACCOUNT, acc, ())
 
         # remove account and update accounts file
         del self.accounts[acc_id]

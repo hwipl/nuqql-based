@@ -5,7 +5,7 @@ Basic nuqql backend
 import asyncio
 import sys
 
-from typing import TYPE_CHECKING, Callable, List, Optional, Tuple
+from typing import TYPE_CHECKING, Awaitable, Callable, List, Optional, Tuple
 
 import nuqql_based.logger
 
@@ -18,7 +18,7 @@ if TYPE_CHECKING:   # imports for typing
     # pylint: disable=cyclic-import
     from nuqql_based.account import Account  # noqa
 
-CallbackFunc = Callable[[Optional["Account"], Callback, Tuple], str]
+CallbackFunc = Callable[[Optional["Account"], Callback, Tuple], Awaitable[str]]
 CallbackTuple = Tuple[Callback, CallbackFunc]
 CallbackList = List[CallbackTuple]
 
@@ -62,19 +62,19 @@ class Based:
 
         # load config from command line arguments and config file
         self.config.init()
-        self.callbacks.call(Callback.BASED_CONFIG, None, (self.config, ))
+        await self.callbacks.call(Callback.BASED_CONFIG, None, (self.config, ))
 
         # logging
         nuqql_based.logger.init(self.config)
 
         # load account list
-        self.accounts.load()
+        await self.accounts.load()
 
         # start server
         try:
             await self.server.run()
         except KeyboardInterrupt:
-            self.callbacks.call(Callback.BASED_INTERRUPT, None, ())
+            await self.callbacks.call(Callback.BASED_INTERRUPT, None, ())
         finally:
-            self.callbacks.call(Callback.BASED_QUIT, None, ())
+            await self.callbacks.call(Callback.BASED_QUIT, None, ())
             sys.exit()
