@@ -64,7 +64,7 @@ class Account:
         Receive a message from other users or the backend
         """
 
-        self.queue.put(msg)
+        self.queue.put_nowait(msg)
 
         if Message.is_message(msg) and self.config.get_history():
             # TODO: add timestamp?
