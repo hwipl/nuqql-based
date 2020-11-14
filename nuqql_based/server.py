@@ -5,7 +5,6 @@ nuqql-based socket server
 import asyncio
 import logging
 import stat
-import sys
 import os
 try:
     import daemon   # type: ignore
@@ -108,17 +107,19 @@ class Server:
             cmd = await self._handle_messages(reader, writer)
 
             # handle special return codes
-            if cmd == "bye":
-                # some error occured handling the messages or user said bye,
-                # drop the client
+            if cmd in ("bye", "quit"):
+                # some error occured handling the messages or
+                # user said bye/quit, drop the client
                 inc_task.cancel()
                 writer.close()
                 await writer.wait_closed()
                 self.connected = False
+                if cmd == "quit":
+                    # quit the server
+                    assert self.server
+                    self.server.close()
+                    await self.server.wait_closed()
                 return
-            if cmd == "quit":
-                # quit the server
-                sys.exit()
 
     async def _run_inet(self) -> None:
         """
