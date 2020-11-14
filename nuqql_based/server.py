@@ -114,6 +114,7 @@ class Server:
                 # some error occured handling the messages or
                 # user said bye/quit, drop the client
                 inc_task.cancel()
+                await inc_task
                 writer.close()
                 await writer.wait_closed()
                 self.connected = False
