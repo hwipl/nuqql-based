@@ -42,12 +42,15 @@ class Server:
         Handle messages coming from the backend connections
         """
 
-        # get messages from callback for each account
-        while True:
-            msg = await self.queue.get()
-            writer.write(msg.encode())
-            await writer.drain()
-            self.queue.task_done()
+        try:
+            # read messages from message queue
+            while True:
+                msg = await self.queue.get()
+                writer.write(msg.encode())
+                await writer.drain()
+                self.queue.task_done()
+        except asyncio.CancelledError:
+            return
 
     async def _handle_messages(self, reader: asyncio.StreamReader, writer:
                                asyncio.StreamWriter) -> str:
