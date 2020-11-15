@@ -72,7 +72,7 @@ class Based:
         # start server
         try:
             await self.server.run()
-        except KeyboardInterrupt:
+        except asyncio.CancelledError:
             await self.callbacks.call(Callback.BASED_INTERRUPT, None, ())
         finally:
             await self.callbacks.call(Callback.BASED_QUIT, None, ())
