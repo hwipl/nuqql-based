@@ -3,7 +3,6 @@ Basic nuqql backend
 """
 
 import asyncio
-import sys
 
 from typing import TYPE_CHECKING, Awaitable, Callable, List, Optional, Tuple
 
@@ -77,4 +76,3 @@ class Based:
             await self.callbacks.call(Callback.BASED_INTERRUPT, None, ())
         finally:
             await self.callbacks.call(Callback.BASED_QUIT, None, ())
-            sys.exit()
