@@ -134,7 +134,6 @@ class AccountList:
         self.config = config
         self.callbacks = callbacks
         self.queue = queue
-        # TODO: add locking?
         self.accounts: Dict[int, Account] = {}
 
     def store(self) -> None:
