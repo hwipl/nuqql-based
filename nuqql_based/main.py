@@ -81,8 +81,8 @@ async def send_message(acc: Optional["Account"], _cmd: Callback,
     return ""
 
 
-async def _update_buddies(acc: Optional["Account"], _cmd: Callback,
-                          params: Tuple) -> str:
+async def _get_buddies(acc: Optional["Account"], _cmd: Callback,
+                       params: Tuple) -> str:
     """
     Get buddy list. For testing, this simply returns a single buddy list for
     all accounts.
@@ -114,7 +114,7 @@ async def _main() -> None:
         (Callback.SET_STATUS, set_status),
         (Callback.GET_STATUS, get_status),
         (Callback.SEND_MESSAGE, send_message),
-        (Callback.UPDATE_BUDDIES, _update_buddies),
+        (Callback.GET_BUDDIES, _get_buddies),
     ]
     based.set_callbacks(callbacks)
     await based.start()

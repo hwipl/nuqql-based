@@ -272,7 +272,7 @@ class Server:
             online = True
 
         # update buddy list
-        result = await self.callbacks.call(Callback.UPDATE_BUDDIES, acc,
+        result = await self.callbacks.call(Callback.GET_BUDDIES, acc,
                                            (online,))
 
         # add info message that all buddies have been received
