@@ -8,7 +8,6 @@ import asyncio
 import stat
 import os
 
-from threading import Lock
 from typing import TYPE_CHECKING, List, Tuple, Dict
 
 from nuqql_based.callback import Callback
@@ -37,7 +36,6 @@ class Account:
         self.status = "online"
         self._buddies: List[Buddy] = []
         self._history: List[str] = []
-        self._history_lock = Lock()
         self.config = config
         self.callbacks = callbacks
         self.queue = queue
@@ -67,9 +65,7 @@ class Account:
 
         if Message.is_message(msg) and self.config.get_history():
             # TODO: add timestamp?
-            self._history_lock.acquire()
             self._history.append(msg)
-            self._history_lock.release()
 
     def get_history(self) -> List[str]:
         """
@@ -77,9 +73,7 @@ class Account:
         """
 
         # TODO: add timestamp parameter?
-        self._history_lock.acquire()
         history = self._history[:]
-        self._history_lock.release()
 
         return history
 
