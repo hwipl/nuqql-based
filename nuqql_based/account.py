@@ -36,7 +36,6 @@ class Account:
         self.password = "dummy_password"
         self.status = "online"
         self._buddies: List[Buddy] = []
-        self._buddies_lock = Lock()
         self._history: List[str] = []
         self._history_lock = Lock()
         self.config = config
@@ -89,9 +88,7 @@ class Account:
         Get the buddy list
         """
 
-        self._buddies_lock.acquire()
         buddies = self._buddies[:]
-        self._buddies_lock.release()
 
         return buddies
 
@@ -103,9 +100,7 @@ class Account:
         Flush buddy list
         """
 
-        self._buddies_lock.acquire()
         self._flush_buddies()
-        self._buddies_lock.release()
 
     def _add_buddy(self, name: str, alias: str, status: str) -> bool:
         for buddy in self._buddies:
@@ -121,9 +116,7 @@ class Account:
         Add a buddy to the buddy list
         """
 
-        self._buddies_lock.acquire()
         was_new = self._add_buddy(name, alias, status)
-        self._buddies_lock.release()
         if was_new:
             logging.info("account %d: new buddy: %s", self.aid, name)
 
@@ -132,11 +125,9 @@ class Account:
         Update buddy list with buddy_list (list of name, alias, status tuples)
         """
 
-        self._buddies_lock.acquire()
         self._flush_buddies()
         for name, alias, status in buddy_list:
             self._add_buddy(name, alias, status)
-        self._buddies_lock.release()
 
 
 class AccountList:
