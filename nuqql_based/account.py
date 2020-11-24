@@ -8,11 +8,10 @@ import asyncio
 import stat
 import os
 
-from typing import TYPE_CHECKING, List, Tuple, Dict
+from typing import TYPE_CHECKING, List, Dict
 
 from nuqql_based.callback import Callback
 from nuqql_based.message import Message
-from nuqql_based.buddy import Buddy
 
 if TYPE_CHECKING:   # imports for typing
     # pylint: disable=cyclic-import
@@ -34,7 +33,6 @@ class Account:
         self.user = "dummy@dummy.com"
         self.password = "dummy_password"
         self.status = "online"
-        self._buddies: List[Buddy] = []
         self._history: List[str] = []
         self.config = config
         self.callbacks = callbacks
@@ -52,9 +50,6 @@ class Account:
         # log message
         log_msg = "message: to {0}: {1}".format(user, msg)
         logging.info(log_msg)
-
-        # add unknown buddies on send
-        self.add_buddy(user, "", "")
 
     def receive_msg(self, msg: str) -> None:
         """
@@ -76,52 +71,6 @@ class Account:
         history = self._history[:]
 
         return history
-
-    def get_buddies(self) -> List[Buddy]:
-        """
-        Get the buddy list
-        """
-
-        buddies = self._buddies[:]
-
-        return buddies
-
-    def _flush_buddies(self) -> None:
-        self._buddies = []
-
-    def flush_buddies(self) -> None:
-        """
-        Flush buddy list
-        """
-
-        self._flush_buddies()
-
-    def _add_buddy(self, name: str, alias: str, status: str) -> bool:
-        for buddy in self._buddies:
-            if buddy.name == name:
-                return False
-
-        buddy = Buddy(name, alias, status)
-        self._buddies.append(buddy)
-        return True
-
-    def add_buddy(self, name: str, alias: str, status: str) -> None:
-        """
-        Add a buddy to the buddy list
-        """
-
-        was_new = self._add_buddy(name, alias, status)
-        if was_new:
-            logging.info("account %d: new buddy: %s", self.aid, name)
-
-    def update_buddies(self, buddy_list: List[Tuple[str, str, str]]) -> None:
-        """
-        Update buddy list with buddy_list (list of name, alias, status tuples)
-        """
-
-        self._flush_buddies()
-        for name, alias, status in buddy_list:
-            self._add_buddy(name, alias, status)
 
 
 class AccountList:

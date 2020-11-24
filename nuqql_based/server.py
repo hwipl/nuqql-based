@@ -266,34 +266,24 @@ class Server:
         accounts = self.account_list.get()
         acc = accounts[acc_id]
 
-        # update buddy list
-        await self.callbacks.call(Callback.UPDATE_BUDDIES, acc, ())
-
         # filter online buddies?
         online = False
         if len(params) >= 1 and params[0].lower() == "online":
             online = True
 
-        # get buddies for account
-        replies = []
-        for buddy in acc.get_buddies():
-            # filter online buddies if wanted by client
-            if online and buddy.status != "Available":
-                continue
-
-            # construct replies
-            reply = Message.buddy(acc, buddy)
-            replies.append(reply)
+        # update buddy list
+        result = await self.callbacks.call(Callback.UPDATE_BUDDIES, acc,
+                                           (online,))
 
         # add info message that all buddies have been received
-        replies.append(Message.info(f"got buddies for account {acc_id}."))
+        info = Message.info(f"got buddies for account {acc_id}.")
 
         # log event
-        log_msg = "account {0} buddies: {1}".format(acc_id, replies)
+        log_msg = "account {0} buddies: {1}".format(acc_id, result)
         logging.info(log_msg)
 
         # return replies as single string
-        return "".join(replies)
+        return result + info
 
     async def _handle_account_collect(self, acc_id: int,
                                       params: List[str]) -> str:
