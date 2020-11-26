@@ -10,7 +10,6 @@ import time
 from typing import TYPE_CHECKING, Awaitable, Callable, List, Optional, Tuple
 
 from nuqql_based.based import Based
-from nuqql_based.buddy import Buddy
 from nuqql_based.callback import Callback
 from nuqql_based.message import Message
 
@@ -22,7 +21,7 @@ CallbackFunc = Callable[[Optional["Account"], Callback, Tuple], Awaitable[str]]
 VERSION = "0.2.0"
 
 # buddy list for testing only; only supports one account
-TEST_BUDDIES: List[Buddy] = []
+TEST_BUDDIES: List[str] = []
 
 
 async def set_status(acc: Optional["Account"], _cmd: Callback,
@@ -55,12 +54,11 @@ def _add_buddy(name: str) -> None:
     """
 
     for buddy in TEST_BUDDIES:
-        if buddy.name == name:
+        if buddy == name:
             return
 
     # new buddy
-    buddy = Buddy(name, "", "")
-    TEST_BUDDIES.append(buddy)
+    TEST_BUDDIES.append(name)
 
 
 async def send_message(acc: Optional["Account"], _cmd: Callback,
@@ -93,13 +91,15 @@ async def _get_buddies(acc: Optional["Account"], _cmd: Callback,
     if params:
         online = params[0]
 
+    # no test buddies are online, return empty list if only online wanted
+    if online:
+        return ""
+
     # construct buddy messages
-    assert acc
     result = ""
+    assert acc
     for buddy in TEST_BUDDIES:
-        if online and buddy.status != "Available":
-            continue
-        result += Message.buddy(acc, buddy)
+        result += Message.buddy(acc, buddy, "", "")
 
     return result
 

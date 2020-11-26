@@ -9,7 +9,6 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:   # imports for typing
     # pylint: disable=cyclic-import
     from nuqql_based.account import Account  # noqa
-    from nuqql_based.buddy import Buddy  # noqa
 
 
 class Message(str, Enum):
@@ -103,12 +102,11 @@ help
                                            acc.user, acc.status)
 
     @staticmethod
-    def buddy(account: "Account", buddy: "Buddy") -> str:
+    def buddy(account: "Account", name: str, alias: str, status: str) -> str:
         """
         Helper for formatting a "buddy" message
         """
-        return str(Message.BUDDY).format(account.aid, buddy.status, buddy.name,
-                                         buddy.alias)
+        return str(Message.BUDDY).format(account.aid, status, name, alias)
 
     @staticmethod
     def status(account: "Account", status: str) -> str:
