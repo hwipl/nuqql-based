@@ -189,7 +189,7 @@ class BackendInetTest(unittest.TestCase):
         # add new account
         self.send_cmd("account add test test@example.com testpw")
         reply = self.recv_msg()
-        self.assertEqual(reply, "info: new account added.")
+        self.assertEqual(reply, "info: added account 0.")
 
         # retrieve account list again, should contain new account
         self.send_cmd("account list")
@@ -201,7 +201,7 @@ class BackendInetTest(unittest.TestCase):
         # add new account
         self.send_cmd("account add test test2@test.com test2pw")
         reply = self.recv_msg()
-        self.assertEqual(reply, "info: new account added.")
+        self.assertEqual(reply, "info: added account 1.")
 
         # retrieve account list again, should contain new account
         self.send_cmd("account list")
@@ -231,7 +231,7 @@ class BackendInetTest(unittest.TestCase):
         # add another account, should get first account id
         self.send_cmd("account add test test3@other.com test3pw")
         reply = self.recv_msg()
-        self.assertEqual(reply, "info: new account added.")
+        self.assertEqual(reply, "info: added account 0.")
 
         # retrieve account list again, should contain new account
         self.send_cmd("account list")
@@ -259,7 +259,7 @@ class BackendInetTest(unittest.TestCase):
         # add an account
         self.send_cmd("account add test test@example.com testpw")
         reply = self.recv_msg()
-        self.assertEqual(reply, "info: new account added.")
+        self.assertEqual(reply, "info: added account 0.")
 
         # retrieve buddy list with empty buddy list
         self.send_cmd("account 0 buddies")
@@ -319,7 +319,7 @@ class BackendInetTest(unittest.TestCase):
         user = "test@example.com"
         self.send_cmd(f"account add test {user} testpw")
         reply = self.recv_msg()
-        self.assertEqual(reply, "info: new account added.")
+        self.assertEqual(reply, "info: added account 0.")
 
         # try again, there should be no reply
         msg = "this is a test!"
@@ -341,7 +341,7 @@ class BackendInetTest(unittest.TestCase):
         # add an account
         self.send_cmd("account add test test@example.com testpw")
         reply = self.recv_msg()
-        self.assertEqual(reply, "info: new account added.")
+        self.assertEqual(reply, "info: added account 0.")
 
         # try again, there should be no reply because history is empty
         self.send_cmd("account 0 collect")
@@ -364,7 +364,7 @@ class BackendInetTest(unittest.TestCase):
         # add an account
         self.send_cmd("account add test test@example.com testpw")
         reply = self.recv_msg()
-        self.assertEqual(reply, "info: new account added.")
+        self.assertEqual(reply, "info: added account 0.")
 
         # get status again
         self.send_cmd("account 0 status get")

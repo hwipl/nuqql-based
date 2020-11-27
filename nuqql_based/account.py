@@ -216,7 +216,7 @@ class AccountList:
         await self.callbacks.call(Callback.ADD_ACCOUNT, new_acc, ())
 
         # return result
-        result = Message.info("new account added.")
+        result = Message.info(f"added account {new_acc.aid}.")
         if self.config.get_push_accounts():
             result += Message.account(new_acc)
         return result
