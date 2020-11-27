@@ -388,6 +388,63 @@ class BackendInetTest(BackendTest):
         self.assertEqual(reply, "status: account 0 status: away")
 
 
+class BackendInetPushAccountsTest(BackendTest):
+    """
+    Test the backend with an AF_INET socket and the "push accounts"
+    configuration setting
+    """
+
+    def _set_backend_cmd(self) -> None:
+        """
+        Set the backend command
+        """
+
+        port = 32000 + self.test_run
+        self.backend_cmd = f"{self.path}/based.py --dir {self.test_dir} " \
+            f"--af inet --port {port} --push-accounts"
+
+    def _reconnect(self) -> None:
+        """
+        Network reconnect helper, tries to reconnect to the server
+        """
+
+        self.sock.close()
+        self._set_socket()
+        self._connect()
+
+    def test_accounts(self) -> None:
+        """
+        Test account listing and adding
+        """
+
+        # test getting empty account list on connect
+        reply = self.recv_msg()
+        self.assertEqual(reply, "info: listed accounts.")
+
+        # add first account
+        self.send_cmd("account add test test@example.com testpw")
+        reply = self.recv_msg()
+        self.assertEqual(reply, "info: added account 0.")
+        reply = self.recv_msg()
+        self.assertEqual(reply, "account: 0 () test test@example.com [online]")
+
+        # add another account
+        self.send_cmd("account add test test2@test.com test2pw")
+        reply = self.recv_msg()
+        self.assertEqual(reply, "info: added account 1.")
+        reply = self.recv_msg()
+        self.assertEqual(reply, "account: 1 () test test2@test.com [online]")
+
+        # reconnect to the server and check new account list
+        self._reconnect()
+        reply = self.recv_msg()
+        self.assertEqual(reply, "account: 0 () test test@example.com [online]")
+        reply = self.recv_msg()
+        self.assertEqual(reply, "account: 1 () test test2@test.com [online]")
+        reply = self.recv_msg()
+        self.assertEqual(reply, "info: listed accounts.")
+
+
 class BackendUnixTest(BackendInetTest):
     """
     Test the backend with an AF_UNIX socket
