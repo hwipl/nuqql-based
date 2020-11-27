@@ -19,9 +19,9 @@ from nuqql_based.message import Message
 DEFAULT_TIMEOUT = 10
 
 
-class BackendInetTest(unittest.TestCase):
+class BackendTest(unittest.TestCase):
     """
-    Test the backend with an AF_INET socket
+    Common backend test base class
     """
 
     # test run counter
@@ -139,6 +139,12 @@ class BackendInetTest(unittest.TestCase):
 
         assert self.sock
         self.sock.settimeout(timeout)
+
+
+class BackendInetTest(BackendTest):
+    """
+    Test the backend with an AF_INET socket
+    """
 
     def test_version(self) -> None:
         """
