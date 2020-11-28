@@ -399,9 +399,16 @@ class BackendInetPushAccountsTest(BackendTest):
         Set the backend command
         """
 
-        port = 32000 + self.test_run
+        port = 33000 + self.test_run
         self.backend_cmd = f"{self.path}/based.py --dir {self.test_dir} " \
             f"--af inet --port {port} --push-accounts"
+
+    def _set_server_addr(self) -> None:
+        """
+        Set the server address
+        """
+
+        self.server_addr = ("localhost", 33000 + self.test_run)
 
     def _reconnect(self) -> None:
         """
