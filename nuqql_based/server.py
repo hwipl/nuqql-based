@@ -103,12 +103,13 @@ class Server:
         # send accounts to new client if "push accounts" is enabled
         if self.config.get_push_accounts():
             accounts = await self.handle_account_list()
+            if not accounts:
+                # return account adding help
+                accounts = await self.callbacks.call(Callback.HELP_ACCOUNT_ADD,
+                                                     None, ())
             if accounts:
                 writer.write(accounts.encode())
                 await writer.drain()
-            else:
-                # trigger account adding help event
-                await self.callbacks.call(Callback.HELP_ACCOUNT_ADD, None, ())
 
         # start sending incoming messages to client
         inc_task = asyncio.create_task(self._handle_incoming(writer))
@@ -209,9 +210,10 @@ class Server:
         # inform caller that all accounts have been received
         replies.append(Message.info("listed accounts."))
 
-        # trigger account add help event if there are no accounts
+        # add account add help if there are no accounts
         if not accounts:
-            await self.callbacks.call(Callback.HELP_ACCOUNT_ADD, None, ())
+            replies.append(await self.callbacks.call(Callback.HELP_ACCOUNT_ADD,
+                                                     None, ()))
 
         # log event
         log_msg = "account list: {0}".format(replies)
