@@ -20,6 +20,9 @@ class Callback(Enum):
     BASED_INTERRUPT = "BASED_INTERRUPT"
     BASED_QUIT = "BASED_QUIT"
 
+    # help events
+    HELP_WELCOME = "HELP_WELCOME"
+
     # nuqql commands
     QUIT = "QUIT"
     DISCONNECT = "DISCONNECT"

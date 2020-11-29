@@ -94,6 +94,9 @@ class Server:
             return
         self.connected = True
 
+        # trigger welcome event to enable custom welcome message
+        await self.callbacks.call(Callback.HELP_WELCOME, None, ())
+
         # send accounts to new client if "push accounts" is enabled
         if self.config.get_push_accounts():
             accounts = self.handle_account_list()
