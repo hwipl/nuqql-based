@@ -99,10 +99,13 @@ class Server:
 
         # send accounts to new client if "push accounts" is enabled
         if self.config.get_push_accounts():
-            accounts = self.handle_account_list()
+            accounts = await self.handle_account_list()
             if accounts:
                 writer.write(accounts.encode())
                 await writer.drain()
+            else:
+                # trigger account adding help event
+                await self.callbacks.call(Callback.HELP_ACCOUNT_ADD, None, ())
 
         # start sending incoming messages to client
         inc_task = asyncio.create_task(self._handle_incoming(writer))
@@ -189,7 +192,7 @@ class Server:
             elif self.config.get_af() == "unix":
                 await self._run_unix()
 
-    def handle_account_list(self) -> str:
+    async def handle_account_list(self) -> str:
         """
         List all accounts
         """
@@ -202,6 +205,10 @@ class Server:
 
         # inform caller that all accounts have been received
         replies.append(Message.info("listed accounts."))
+
+        # trigger account add help event if there are no accounts
+        if not accounts:
+            await self.callbacks.call(Callback.HELP_ACCOUNT_ADD, None, ())
 
         # log event
         log_msg = "account list: {0}".format(replies)
@@ -454,7 +461,7 @@ class Server:
     async def _handle_account_command(self, command: str, acc_id: int,
                                       params: List[str]) -> str:
         if command == "list":
-            return self.handle_account_list()
+            return await self.handle_account_list()
 
         if command == "add":
             # currently this supports "account <ID> add" and "account add <ID>"

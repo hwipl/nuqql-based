@@ -22,6 +22,7 @@ class Callback(Enum):
 
     # help events
     HELP_WELCOME = "HELP_WELCOME"
+    HELP_ACCOUNT_ADD = "HELP_ACCOUNT_ADD"
 
     # nuqql commands
     QUIT = "QUIT"
