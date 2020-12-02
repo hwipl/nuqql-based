@@ -84,7 +84,7 @@ callback-specific parameter tuple. The following example shows the
 `send_message` callback:
 
 ```python
-def send_message(account, callback, params):
+async def send_message(account, callback, params):
     """
     Send a message to another user.
     """
