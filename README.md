@@ -116,6 +116,13 @@ def receive(account, timestamp, sender, destination, text):
 
 ## Changes
 
+* devel:
+  * Switch to asyncio and increase required Python version to >= 3.7
+  * Remove copy of the buddy list from Account and rename callback
+    `UPDATE_BUDDIES` to `GET_BUDDIES` to match new behaviour
+  * Add callbacks:
+    * `HELP_WELCOME`: welcome/help message for clients
+    * `HELP_ACCOUNT_ADD`: help text for adding accounts
 * v0.2.0:
   * Use only one log file
   * Add "push-accounts" to configuration/command line arguments
