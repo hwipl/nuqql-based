@@ -55,13 +55,13 @@ class Config:
         # init command line argument parser
         parser = argparse.ArgumentParser(description="Run nuqql backend.",
                                          add_help=False)
-        parser.add_argument("--address", help="AF_INET listen address")
+        parser.add_argument("--address", help="set AF_INET listen address")
         parser.add_argument("--af", choices=["inet", "unix"],
-                            help="socket address family: \"inet\" for AF_INET, \
-                            \"unix\" for AF_UNIX")
+                            help="set socket address family: \"inet\" for \
+                            AF_INET, \"unix\" for AF_UNIX")
         parser.add_argument("-d", "--daemonize", action="store_true",
                             help="daemonize process")
-        parser.add_argument("--dir", help="working directory")
+        parser.add_argument("--dir", help="set working directory")
         parser.add_argument("--disable-history", action="store_true",
                             help="disable message history")
         parser.add_argument("--filter-own", action="store_true",
@@ -70,11 +70,12 @@ class Config:
                             help="show this help message and exit")
         parser.add_argument("--loglevel", choices=["debug", "info", "warn",
                                                    "error"],
-                            help="Logging level")
-        parser.add_argument("--port", type=int, help="AF_INET listen port")
+                            help="set logging level")
+        parser.add_argument("--port", type=int, help="set AF_INET listen port")
         parser.add_argument("--push-accounts", action="store_true",
-                            help="push accounts to client")
-        parser.add_argument("--sockfile", help="AF_UNIX socket file in DIR")
+                            help="enable pushing accounts to client")
+        parser.add_argument("--sockfile", help="set AF_UNIX socket file in \
+                            DIR")
         parser.add_argument("--version", action="version",
                             version=self._backend_version)
 
