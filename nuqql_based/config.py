@@ -39,6 +39,7 @@ class Config:
         self._loglevel = self._LOGLEVEL_MAP[self._DEFAULT_LOGLEVEL]
         self._history = True
         self._push_accounts = False
+        self._filter_own = False
 
     def get_from_args(self) -> None:
         """
@@ -71,6 +72,8 @@ class Config:
                             help="disable message history")
         parser.add_argument("--push-accounts", action="store_true",
                             help="push accounts to client")
+        parser.add_argument("--filter-own", action="store_true",
+                            help="enable filtering of own messages")
 
         # parse command line arguments
         args = parser.parse_args()
@@ -94,6 +97,8 @@ class Config:
             self._history = False
         if args.push_accounts:
             self._push_accounts = True
+        if args.filter_own:
+            self._filter_own = True
 
     def read_from_file(self) -> None:
         """
@@ -141,6 +146,8 @@ class Config:
                         "history", fallback=self._history)
                     self._push_accounts = config[section].getboolean(
                         "push-accounts", fallback=self._push_accounts)
+                    self._filter_own = config[section].getboolean(
+                        "filter-own", fallback=self._filter_own)
                 except ValueError as error:
                     error_msg = "Error parsing config file: {}".format(error)
                     print(error_msg)
@@ -223,6 +230,14 @@ class Config:
         """
 
         return self._push_accounts
+
+    def get_filter_own(self) -> bool:
+        """
+        Get filter own entry from config: filtering of own messages
+        enabled or disabled
+        """
+
+        return self._filter_own
 
     def get_name(self) -> str:
         """
