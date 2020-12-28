@@ -123,6 +123,7 @@ def receive(account, timestamp, sender, destination, text):
   * Add callbacks:
     * `HELP_WELCOME`: welcome/help message for clients
     * `HELP_ACCOUNT_ADD`: help text for adding accounts
+  * Add configuration option for filtering own messages
 * v0.2.0:
   * Use only one log file
   * Add "push-accounts" to configuration/command line arguments
