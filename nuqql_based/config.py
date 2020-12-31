@@ -53,7 +53,8 @@ class Config:
         """
 
         # init command line argument parser
-        parser = argparse.ArgumentParser(description="Run nuqql backend.",
+        parser = argparse.ArgumentParser(description=f"Run nuqql backend \
+                                         {self._backend_name}.",
                                          add_help=False)
         parser.add_argument("--address", help="set AF_INET listen address")
         parser.add_argument("--af", choices=["inet", "unix"],
