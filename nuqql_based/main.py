@@ -18,7 +18,7 @@ if TYPE_CHECKING:   # imports for typing
 
 CallbackFunc = Callable[[Optional["Account"], Callback, Tuple], Awaitable[str]]
 
-VERSION = "0.2.0"
+VERSION = "0.3.0"
 
 # buddy list for testing only; only supports one account
 TEST_BUDDIES: List[str] = []

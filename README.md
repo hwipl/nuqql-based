@@ -116,7 +116,7 @@ def receive(account, timestamp, sender, destination, text):
 
 ## Changes
 
-* devel:
+* v0.3.0:
   * Switch to asyncio and increase required Python version to >= 3.7
   * Remove copy of the buddy list from Account and rename callback
     `UPDATE_BUDDIES` to `GET_BUDDIES` to match new behaviour
