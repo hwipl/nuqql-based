@@ -20,6 +20,7 @@ if TYPE_CHECKING:   # imports for typing
     from nuqql_based.config import Config  # noqa
 
 
+# pylint: disable=too-many-instance-attributes
 class Account:
     """
     Storage for account specific information
