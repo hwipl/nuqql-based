@@ -125,7 +125,7 @@ class Config:
             config = configparser.ConfigParser()
             config.read(config_file)
         except configparser.Error as error:
-            error_msg = "Error loading config file: {}".format(error)
+            error_msg = f"Error loading config file: {error}"
             print(error_msg)
 
         for section in config.sections():
@@ -154,7 +154,7 @@ class Config:
                     self._filter_own = config[section].getboolean(
                         "filter-own", fallback=self._filter_own)
                 except ValueError as error:
-                    error_msg = "Error parsing config file: {}".format(error)
+                    error_msg = f"Error parsing config file: {error}"
                     print(error_msg)
 
     def init(self) -> None:
