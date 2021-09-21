@@ -48,7 +48,7 @@ class Account:
             await self.callbacks.call(Callback.SEND_MESSAGE, self, (user, msg))
 
         # log message
-        log_msg = "message: to {0}: {1}".format(user, msg)
+        log_msg = f"message: to {user}: {msg}"
         logging.info(log_msg)
 
     def receive_msg(self, msg: str) -> None:
@@ -97,7 +97,7 @@ class AccountList:
 
         # construct accounts config that will be written to the accounts file
         for acc in self.accounts.values():
-            section = "account {}".format(acc.aid)
+            section = f"account {acc.aid}"
             accconf[section] = {}
             accconf[section]["id"] = str(acc.aid)
             accconf[section]["type"] = acc.type
@@ -113,7 +113,7 @@ class AccountList:
                 # write accounts to file
                 accconf.write(acc_file)
         except (OSError, configparser.Error) as error:
-            error_msg = "Error storing accounts file: {}".format(error)
+            error_msg = f"Error storing accounts file: {error}"
             logging.error(error_msg)
 
     async def load(self) -> Dict[int, Account]:
@@ -136,7 +136,7 @@ class AccountList:
             accconf = configparser.ConfigParser()
             accconf.read(accounts_file)
         except configparser.Error as error:
-            error_msg = "Error loading accounts file: {}".format(error)
+            error_msg = f"Error loading accounts file: {error}"
             logging.error(error_msg)
 
         for section in accconf.sections():
@@ -147,7 +147,7 @@ class AccountList:
                 acc_user = accconf[section]["user"]
                 acc_pass = accconf[section]["password"]
             except KeyError as error:
-                error_msg = "Error loading account: {}".format(error)
+                error_msg = f"Error loading account: {error}"
                 logging.error(error_msg)
                 continue
 
@@ -207,9 +207,8 @@ class AccountList:
         self.store()
 
         # log event
-        log_msg = "account new: id {0} type {1} user {2}".format(new_acc.aid,
-                                                                 new_acc.type,
-                                                                 new_acc.user)
+        log_msg = (f"account new: id {new_acc.aid} type {new_acc.type} "
+                   f"user {new_acc.user}")
         logging.info(log_msg)
 
         # notify callback (if present) about new account
@@ -235,7 +234,7 @@ class AccountList:
         self.store()
 
         # log event
-        log_msg = "account deleted: id {0}".format(acc_id)
+        log_msg = f"account deleted: id {acc_id}"
         logging.info(log_msg)
 
-        return "account {} deleted.".format(acc_id)
+        return f"account {acc_id} deleted."
