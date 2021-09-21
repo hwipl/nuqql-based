@@ -216,7 +216,7 @@ class Server:
                                                      None, ()))
 
         # log event
-        log_msg = "account list: {0}".format(replies)
+        log_msg = f"account list: {replies}"
         logging.info(log_msg)
 
         # return a single string
@@ -294,7 +294,7 @@ class Server:
         info = Message.info(f"got buddies for account {acc_id}.")
 
         # log event
-        log_msg = "account {0} buddies: {1}".format(acc_id, result)
+        log_msg = f"account {acc_id} buddies: {result}"
         logging.info(log_msg)
 
         # return replies as single string
@@ -317,7 +317,7 @@ class Server:
             time = int(params[0])
 
         # log event
-        log_msg = "account {0} collect {1}".format(acc_id, time)
+        log_msg = f"account {acc_id} collect {time}"
         logging.info(log_msg)
 
         # collect messages
