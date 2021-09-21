@@ -10,6 +10,7 @@ import stat
 import os
 
 
+# pylint: disable=too-many-instance-attributes
 class Config:
     """
     Nuqql-based configuration
