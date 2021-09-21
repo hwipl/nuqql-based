@@ -106,7 +106,7 @@ class AccountList:
             accconf[section]["password"] = acc.password
 
         try:
-            with open(accounts_file, "w") as acc_file:
+            with open(accounts_file, "w", encoding='UTF-8') as acc_file:
                 # make sure only user can read/write file before storing
                 # anything
                 os.chmod(accounts_file, stat.S_IRUSR | stat.S_IWUSR)
